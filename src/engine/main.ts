@@ -307,6 +307,9 @@ const w = window as any;
 w.check = check;
 w.renderFrame = renderFrame;
 w.whiteOf = (f: number) => whiteAt(f / FPS);   // 2026-11-26: lets the blank-frame guard tell a planned white flash from a black GPU frame
+// 2026-11-26: mean brightness (0..1) of the last rendered picture, for the blank-frame guard (a plain sky also makes a tiny jpg)
+const lumC = document.createElement("canvas"); lumC.width = 27; lumC.height = 48;
+w.lastLuma = () => { const g = lumC.getContext("2d", { willReadFrequently: true })!; g.drawImage(out, 0, 0, 27, 48); const d = g.getImageData(0, 0, 27, 48).data; let s = 0; for (let i = 0; i < d.length; i += 4) s += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; return s / (d.length / 4) / 255; };
 w.grab = (f: number, fmt: string) => {
   renderFrame(f);
   return fmt === "png" ? out.toDataURL("image/png") : out.toDataURL("image/jpeg", 0.95);

@@ -180,9 +180,10 @@ for (let i = 0; i < todo.length; i++) {
   const buf = Buffer.from(url.slice(url.indexOf(",") + 1), "base64");
   // BLANK-FRAME GUARD: if the GPU runs out of memory the 3D picture goes black and only the captions stay (a real frame is much bigger).
   // Such a frame is NOT saved; after 3 in a row the render stops, so a long render never ends as a half-black video.
-  // 2026-11-26: a planned white flash also makes a tiny jpg; it is not a GPU failure, so it is saved
-  const planned = FORMAT === "jpg" && buf.length < info.size[0] * info.size[1] * 0.025 ? await evaluate(`(window.whiteOf ? window.whiteOf(${f}) : 0)`).catch(() => 0) : 0;
-  if (FORMAT === "jpg" && planned < 0.6 && buf.length < info.size[0] * info.size[1] * 0.025) {
+  // 2026-11-26: a white flash or a plain sky also makes a tiny jpg; only a DARK small frame is a GPU failure
+  const small = FORMAT === "jpg" && buf.length < info.size[0] * info.size[1] * 0.025;
+  const luma = small ? await evaluate(`(window.lastLuma ? window.lastLuma() : 0)`).catch(() => 0) : 1;
+  if (small && luma < 0.12) {
     blank++; if (blank >= 3) die(`frames from ${f - 2} on came out black (the GPU probably ran out of memory). Nothing bad was saved. Close other programs, then run the SAME command again with: set RESUME=1`);
     continue;
   } else blank = 0;
