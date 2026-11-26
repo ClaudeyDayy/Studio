@@ -26,7 +26,7 @@ export const TALLY: V3 = A(FIELD, -2.5, 0, -13), TALLY_R = 2.498;   // S07b tall
 export const tally = (x: number, y: number, z: number) => rotY(TALLY, TALLY_R, x, y, z);
 export const MAX_TALLY = tally(1.9, 0, 0.75);           // Max beside the tally board
 export const MAX_WING: V3 = A(FIELD, -7.2, 0, 1.3);     // S06 Max on the ground by the plated wing
-export const CHEESE: V3 = A(FIELD, -7.07, 0.78, 1.68);  // S06 the Swiss cheese held out low in Max's right hand (his head stays out of the close-up)
+export const CHEESE: V3 = A(FIELD, -7.23, 0.78, 1.87);  // fix7: arm further out to his right (was -7.07, 1.68)  // S06 the Swiss cheese held out low in Max's right hand (his head stays out of the close-up)
 export const MAX_ENGINE: V3 = A(FIELD, -3.6, 0, -1.6);  // S15 Max watching the plates go onto the engine (over his shoulder)
 export const ENGINE_LOOK: V3 = A(FIELD, -6.8, 1.9, -5.0);
 export const WALD_DESK: V3 = A(OFFICE, 1.0, 0, -1.95);  // seated behind the desk, facing the camera (+z)
@@ -43,7 +43,7 @@ export const PHOTO_CORNERS: V3[] = [A(PHOTO_C, PHOTO_W / 2, PHOTO_H / 2, 0), A(P
 export const LAND = [{ td: 11.5 }, { td: 13.2 }];
 
 // ---------------- camera ----------------
-const OPEN = P(A(SKY, -2.6, 1.3, -9.4), A(SKY, 0.4, -0.2, -4.5), 44);          // first = last frame: holed wing, low gold sun
+const OPEN = P(A(SKY, -2.6, 0.9, -9.4), A(SKY, 0.4, -0.05, -4.5), 44);          // fix7: lower, flatter (was y 1.3 -> -0.2)          // first = last frame: holed wing, low gold sun
 const NOSE = P(A(SKY, 9.5, 1.8, -4.0), A(SKY, 4.7, 0.5, 0), 48);              // in front of the cockpit windows
 const CREEP = 0.12, LAST_T = 61.85, LAST_MOVE = 1.25;
 const endPose = (): Pose => { const d = norm(sub(OPEN.look, OPEN.pos)); return { ...OPEN, pos: sub(OPEN.pos, mul(d, CREEP * ramp(DURATION - LAST_T - LAST_MOVE))) }; };
@@ -56,17 +56,17 @@ const level = (p: V3, y: number): V3 => [p[0], y, p[2]];
 const shots: Shot[] = [
   // S01 0.00-3.45  "The safest part of a bomber was the part covered in bullet holes."  holed wing -> pull back -> fly to the cockpit
   { t: 0, space: "sky", from: OPEN, to: OPEN, move: 0, creep: CREEP, noRamp: true, tag: "S01" },
-  { t: 0.95, space: "sky", to: P(A(SKY, -5, 4.6, -16.5), A(SKY, 1.5, 0, -3), 44), move: 1.8 },
+  { t: 0.95, space: "sky", to: P(A(SKY, -6, 2.0, -18), A(SKY, 1.5, 0.2, -3), 44), move: 1.8 },   // fix7: pull back low (was y 4.6)
   { t: 2.75, space: "sky", to: NOSE, move: 0.85, via: A(SKY, 3, 5, -12) },
   // S02a 3.45-8.85  "It's 1943 ... Jack limps home ... ten-man crew,"  through the windscreen to Max, then down the body to the crew
-  { t: 3.3, space: "cabin", from: P(A(CABIN, 1.75, 1.55, -0.1), A(CABIN, -0.62, 0.95, -0.2), 50), to: P(A(CABIN, 1.15, 1.45, -0.12), A(CABIN, -0.62, 0.93, -0.18), 50), move: 1.4, creep: 0.05, dissolve: 0.35, tag: "S02a" },
+  { t: 3.3, space: "cabin", from: P(A(CABIN, 1.75, 1.55, -0.18), A(CABIN, -0.62, 1.05, -0.28), 50), to: P(A(CABIN, 1.15, 1.45, -0.2), A(CABIN, -0.62, 1.03, -0.26), 50), move: 1.4, creep: 0.05, dissolve: 0.35, tag: "S02a" },   // fix7: post off Max's face, less dark panel
   { t: 7.2, space: "cabin", from: P(A(CABIN, -1.32, 1.02, 0.2), A(CABIN, -7, 0.72, -0.05), 58), to: P(A(CABIN, -1.4, 1.0, 0.2), A(CABIN, -7, 0.72, -0.05), 58), move: 0.8, creep: 0.1, dissolve: 0.4 },
   // S02b 8.85-10.63  "one wing full of holes."  insert on the holed wing, an engine coughs; follow the line down
   { t: 8.75, space: "sky", from: P(A(SKY, -0.8, 2.7, -12.2), A(SKY, 2.4, 0.1, -5.2), 40), to: P(A(SKY, -0.2, 2.5, -11.6), A(SKY, 2.6, 0.1, -5.0), 40, 0, 3), move: 1.2, dissolve: 0.35, tag: "S02b" },
   { t: 9.95, space: "sky", to: P(A(SKY, 2, 6.5, -13.5), A(SKY, 9, -14, -6), 50), move: 0.75 },
   // S03 10.63-15.54  "Planes like his keep coming back ... never return."  high over the landing planes, glide down to the empty spot
   { t: 10.5, space: "field", from: P(A(FIELD, -62, 22, -80), A(FIELD, -88, 6, -45), 46), to: P(A(FIELD, -58, 21, -79), A(FIELD, -70, 4, -45), 46), move: 0.7, dissolve: 0.35, tag: "S03" },
-  { t: 11.2, space: "field", to: P(A(FIELD, 19, 1.1, -15), A(FIELD, 13.5, 1.3, -3), 50), move: 3.2, via: A(FIELD, -25, 16, -48), creep: 0.15 },
+  { t: 11.2, space: "field", to: P(A(FIELD, 15.5, 1.0, -1.5), A(FIELD, 11.0, 1.5, -9.5), 50), move: 3.2,   /* fix7: was (19,1.1,-15) facing the hangar */ via: A(FIELD, -25, 16, -48), creep: 0.15 },
   // S04 15.54-18.46  "The generals study the damage and make a simple plan."  OBJECT TRANSITION: S03 shrinks into a photo on the board
   { t: 15.45, space: "hangar", from: P(A(FIELD, 2.0, 1.25, 35.4), A(FIELD, -1.0, 1.9, 42.7), 44, 8), to: P(A(FIELD, 2.0, 1.25, 35.4), A(FIELD, -1.0, 1.9, 42.7), 44, 8), move: 0, creep: 0.14, collapse: { dur: 0.6, hold: 0.3 }, tag: "S04" },
   { t: 17.2, space: "hangar", to: P(A(FIELD, 1.6, 1.25, 36.2), A(FIELD, -0.4, 1.85, 42.7), 44, 8), move: 1.0, creep: 0.08 },
@@ -79,9 +79,9 @@ const shots: Shot[] = [
   // S07a 24.57-27.38  "Still, bombers keep vanishing over Europe."  storm, plated planes in a line, the back one slips into cloud
   { t: 24.45, space: "storm", from: P(A(STORM, 12, 2, 24), A(STORM, -16, -2, -10), 48), to: P(A(STORM, 9, 2.5, 22), A(STORM, -18, -2.5, -12), 48), move: 1.6, drift: [-1.2, 0, -0.6], dissolve: 0.4, tag: "S07a" },
   // S07b+S08 27.38-33.24  "Armor is heavy ... Wait, why would armor ... not help?"  tally board, push to Max on "Wait"
-  { t: 27.25, space: "field", from: camT(0.6, 1.2, 5.6, 0.85, 1.3, 0, 50), to: camT(0.75, 1.15, 5.0, 0.9, 1.3, 0, 50), move: 1.4, creep: 0.05, dissolve: 0.4, tag: "S07b" },
-  { t: 28.95, space: "field", to: camT(1.55, 1.02, 2.75, 1.85, 0.98, 0.75, 46), move: 0.65, creep: 0.06 },
-  { t: 32.4, space: "field", to: P(near(head(MAX_TALLY), tally(1.6, 1.0, 2.75), 0.6), head(MAX_TALLY), 44), move: 0.75 },   // into his round head
+  { t: 27.25, space: "field", from: camT(5.0, 1.05, 3.6, 1.0, 1.3, 0.3, 50), to: camT(4.4, 1.0, 3.0, 1.0, 1.3, 0.3, 50),   /* fix7: whole board + Max in depth */ move: 1.4, creep: 0.05, dissolve: 0.4, tag: "S07b" },
+  { t: 28.95, space: "field", to: camT(3.9, 1.0, 2.6, 1.2, 1.25, 0.4, 48), move: 0.65, creep: 0.06 },
+  { t: 32.4, space: "field", to: P(near(head(MAX_TALLY), tally(3.9, 1.0, 2.6), 0.6), head(MAX_TALLY), 44), move: 0.75 },   // into his round head
   // S09 33.24-37.44  "You see, a mathematician named Abraham Wald studies the same planes."  round head -> round lamp, pull back
   { t: 33.05, space: "office", from: P(A(OFFICE, 1.62, 1.16, -0.55), LAMP, 48), to: P(A(OFFICE, 1.62, 1.16, -0.55), LAMP, 48), move: 0, dissolve: 0.4, tag: "S09" },
   { t: 33.5, space: "office", to: P(A(OFFICE, -0.1, 1.32, 2.3), A(OFFICE, 1.0, 0.95, -1.5), 54), move: 2.4, orbit: 2.5 },
@@ -107,7 +107,7 @@ const shots: Shot[] = [
   { t: 56.7, space: "field", from: P(A(FIELD, -2.6, 1.25, -0.9), ENGINE_LOOK, 52, 8), to: P(A(FIELD, -2.77, 1.19, -1.08), ENGINE_LOOK, 52, 8), move: 1.2, orbit: -3, dissolve: 0.4, tag: "S15" },
   { t: 60.1, space: "field", to: P(A(FIELD, -3.8, 5.5, -2.5), A(FIELD, -12, 28, -22), 60), move: 0.55 },                // fly up into the sky
   // S16 60.63-64.00  "The holes were never the danger. They were the good news."  Max happy, then out to the holed wing (= the first frame)
-  { t: 60.5, space: "cabin", from: P(A(CABIN, 1.0, 1.42, -0.12), A(CABIN, -0.62, 0.93, -0.2), 50), to: P(A(CABIN, 1.4, 1.48, -0.1), A(CABIN, -0.62, 0.93, -0.2), 50), move: 1.4, dissolve: 0.35, tag: "S16" },
+  { t: 60.5, space: "cabin", from: P(A(CABIN, 1.0, 1.42, -0.2), A(CABIN, -0.62, 1.03, -0.28), 50), to: P(A(CABIN, 1.4, 1.48, -0.18), A(CABIN, -0.62, 1.03, -0.28), 50), move: 1.4, dissolve: 0.35, tag: "S16" },   // fix7: same as S02a
   { t: LAST_T, space: "sky", from: NOSE, to: endPose(), move: LAST_MOVE, via: A(SKY, 3, 5, -12), creep: CREEP, dissolve: 0.35 },
 ];
 // impact kicks: plate stamp on "hit", engine hit, the two plates going onto the engine
