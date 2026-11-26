@@ -1,9 +1,9 @@
 @echo off
-rem Fix round 2: S01 S02a S03 S04 cheese S07b S11 to studio\out\frames-wald-bomber
+rem Round 2: S02b S05 S07a S09 S12 S13 S14 S15 (S16 ends on the approved S01 frame) to studio\out\frames-wald-bomber
 cd /d "%~dp0"
 node render.mjs check
 echo.
-node render.mjs 45,180,438,510,700,900,1374
+node render.mjs 300,590,780,1060,1505,1550,1680,1760
 echo.
 echo Finished. You can close this window.
 pause
