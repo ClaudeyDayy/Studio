@@ -54,7 +54,7 @@ const sm = smooth;
 const up = (v: V3, h: number): V3 => [v[0], v[1] + h, v[2]];
 const dist = (a: V3, b: V3) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 // real talking mouths (2026-11-26, his request): lips follow the narration words, not a random moving smile
-const talkAt = makeTalk(words as Word[], [{ who: "mech1", a: 18.65, b: 20.35 }, { who: "maxG", a: 20.75, b: 22.2 }, { who: "ava", a: 44.75, b: 46.5 }]);
+const talkAt = makeTalk(words as Word[], [{ who: "mech1", a: 18.65, b: 20.35 }, { who: "maxG", a: 20.75, b: 22.2 }, { who: "maxG", a: 27.5, b: 33.05 },   /* S07b-S08 at the tally board (his note) */ { who: "ava", a: 44.75, b: 46.5 }]);
 const talkFn = (key: string) => (t: number) => talkAt(key, t);
 const F = (...k: [number, string][]): FaceKey[] => k.map(([t, e]) => ({ t, e }));
 const flat = (x: number, z: number): [number, number] => [x, z];
