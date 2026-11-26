@@ -48,7 +48,7 @@ const NOSE = P(A(SKY, 9.5, 1.8, -4.0), A(SKY, 4.7, 0.5, 0), 48);              //
 const CREEP = 0.12, LAST_T = 61.85, LAST_MOVE = 1.25;
 const endPose = (): Pose => { const d = norm(sub(OPEN.look, OPEN.pos)); return { ...OPEN, pos: sub(OPEN.pos, mul(d, CREEP * ramp(DURATION - LAST_T - LAST_MOVE))) }; };
 const near = (target: V3, from: V3, d: number): V3 => { const v = norm(sub(from, target)); return [target[0] + v[0] * d, target[1] + v[1] * d, target[2] + v[2] * d]; };
-const CHEESE_CAM0: V3 = A(FIELD, -5.6, 1.02, 2.9);
+const CHEESE_CAM0: V3 = A(FIELD, -5.6, 1.02, 2.9), CHEESE_APP: V3 = A(FIELD, -6.4, 1.0, 3.6);   // fix7b: close-ups come from further left, so his head stays out
 const camT = (cx: number, cy: number, cz: number, lx: number, ly: number, lz: number, fov: number, blur = 0) => P(tally(cx, cy, cz), tally(lx, ly, lz), fov, blur);
 const head = (p: V3, h = 0.98): V3 => [p[0], p[1] + h, p[2]];
 const level = (p: V3, y: number): V3 => [p[0], y, p[2]];
@@ -74,8 +74,8 @@ const shots: Shot[] = [
   { t: 18.35, space: "field", from: P(A(FIELD, -6.7, 2.75, 1.9), A(FIELD, -8.7, 2.3, -0.9), 46), to: P(A(FIELD, -6.85, 2.65, 1.6), A(FIELD, -8.7, 2.3, -0.9), 46), move: 1.6, creep: 0.06, dissolve: 0.35, tag: "S05" },
   // S06 20.63-24.57  "Jack laughs ... Swiss cheese wearing a steel jacket."  two-shot, then push to the cheese
   { t: 20.5, space: "field", from: P(A(FIELD, -5.4, 1.05, 3.1), A(FIELD, -7.7, 1.3, 0.5), 50), to: P(CHEESE_CAM0, A(FIELD, -7.5, 1.25, 0.5), 50), move: 1.2, creep: 0.06, dissolve: 0.35, tag: "S06" },
-  { t: 22.35, space: "field", to: P(near(CHEESE, CHEESE_CAM0, 0.75), CHEESE, 42), move: 1.3, creep: 0.05 },
-  { t: 23.75, space: "field", to: P(level(near(CHEESE, CHEESE_CAM0, 0.34), CHEESE[1] + 0.02), CHEESE, 38), move: 0.8 },
+  { t: 22.35, space: "field", to: P(near(CHEESE, CHEESE_APP, 0.75), CHEESE, 42), move: 1.3, creep: 0.05 },
+  { t: 23.75, space: "field", to: P(level(near(CHEESE, CHEESE_APP, 0.34), CHEESE[1] + 0.02), CHEESE, 38), move: 0.8 },
   // S07a 24.57-27.38  "Still, bombers keep vanishing over Europe."  storm, plated planes in a line, the back one slips into cloud
   { t: 24.45, space: "storm", from: P(A(STORM, 12, 2, 24), A(STORM, -16, -2, -10), 48), to: P(A(STORM, 9, 2.5, 22), A(STORM, -18, -2.5, -12), 48), move: 1.6, drift: [-1.2, 0, -0.6], dissolve: 0.4, tag: "S07a" },
   // S07b+S08 27.38-33.24  "Armor is heavy ... Wait, why would armor ... not help?"  tally board, push to Max on "Wait"

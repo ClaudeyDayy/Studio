@@ -160,9 +160,9 @@ export class BomberWorld implements World {
     this.P.maxG = person("max", MAX_WING, { face: F([0, "happy"], [21.1, "happy"], [22.3, "smile"], [23.6, "satisfied"], [27.3, "sad"], [28.2, "stressed"], [29.55, "confused"], [31.5, "stressed"], [32.3, "confused"],
       [56.6, "neutral"], [57.7, "confused"], [59.4, "surprised"], [59.95, "happy"]), sweat: [[27.9, 29.5]], talk: [[20.9, 22.1]] });
     // generals (S04 hangar, S15 by the plane)
-    this.P.omar = person("omar", [0.1, 0, 40.0], { life: [[0, "neutral"], [16.6, "smug"], [17.6, "grin"], [18.3, "smug"], [57.4, "shock"], [58.0, "smug"], [59.4, "grin"]] });
+    this.P.omar = person("omar", [-0.3, 0, 40.3], { life: [[0, "neutral"], [16.6, "smug"], [17.6, "grin"], [18.3, "smug"], [57.4, "shock"], [58.0, "smug"], [59.4, "grin"]] });
     this.P.gen1 = person("gen1", [0.9, 0, 39], { life: [[0, "neutral"], [17.7, "smug"], [57.9, "grin"]] });
-    this.P.gen2 = person("gen2", [-0.3, 0, 40.6], { face: F([0, "neutral"], [16.2, "content"], [17.9, "satisfied"]) });
+    this.P.gen2 = person("gen2", [0.6, 0, 41.8], { face: F([0, "neutral"], [16.2, "content"], [17.9, "satisfied"]) });
     // mechanics
     this.P.mech1 = person("mech1", [-9.6, 0, -12.7], { face: F([0, "neutral"], [18.5, "strain"], [20.15, "satisfied"], [21.0, "happy"], [22.6, "smile"], [56.8, "content"], [57.9, "strain"], [58.2, "satisfied"], [59.5, "strain"], [59.8, "satisfied"]) });
     this.P.mech2 = person("mech2", [13.5, 0, -5], { face: F([0, "neutral"], [13.4, "sad"], [18.3, "content"], [56.8, "neutral"], [58.5, "content"]) });
@@ -355,12 +355,12 @@ export class BomberWorld implements World {
     if (t < 56) {
       const board: V3 = [-0.4, 0, 42.7];
       // fix7: Omar and gen2 moved into the S04 frame (they stood outside it); gen1 stays the over-the-shoulder
-      base(P.omar, [0.1, 0, 40.0], flat(board[0] - 0.1, board[2] - 40.0)); base(P.gen1, [0.9, 0, 39], flat(board[0] - 0.9, board[2] - 39)); base(P.gen2, [-0.3, 0, 40.6], flat(board[0] + 0.3, board[2] - 40.6));
+      base(P.omar, [-0.3, 0, 40.3], flat(board[0] + 0.3, board[2] - 40.3)); base(P.gen1, [0.9, 0, 39], flat(board[0] - 0.9, board[2] - 39)); base(P.gen2, [0.6, 0, 41.8], flat(board[0] - 0.6, board[2] - 41.8));
       if (t > 17.45 && t < 18.5) { const k = sm(17.45, 17.75, t) * (1 - sm(18.2, 18.5, t)); P.omar.setLook(-1, 0.4); P.omar.hand.R = lerpV(P.omar.restHand("R"), reachTo(shoulder(P.omar, 1), [0.2, 2.0, 42.6], 0.45), k); }
       P.gen1.lookEyes(t > 17.6 ? head(P.omar) : PHOTO_C, 0.7); P.gen2.lookEyes(PHOTO_C, 0.6);
     } else {
       const om: V3 = [-6.27, 0, -3.51], g1: V3 = [-5.9, 0, -2.73];
-      base(P.omar, om, flat(MAX_ENGINE[0] - om[0], MAX_ENGINE[2] - om[2])); base(P.gen1, g1, flat(MAX_ENGINE[0] - g1[0], MAX_ENGINE[2] - g1[2])); base(P.gen2, [-0.3, 0, 40.6], [0, 1]);
+      base(P.omar, om, flat(MAX_ENGINE[0] - om[0], MAX_ENGINE[2] - om[2])); base(P.gen1, g1, flat(MAX_ENGINE[0] - g1[0], MAX_ENGINE[2] - g1[2])); base(P.gen2, [0.6, 0, 41.8], [0, 1]);
       P.omar.lookEyes(this.engSpots[0] ?? ENGINE_LOOK, 0.6); P.gen1.lookEyes(this.engSpots[0] ?? ENGINE_LOOK, 0.6);
     }
     // ---- mechanics, the stand and the steel plates ----
@@ -440,7 +440,7 @@ export class BomberWorld implements World {
     if (show(P.col2, sp === "office2")) { base(P.col2, A(OFFICE, -0.15, 0, -0.1), flat(-1.2, -1)); P.col2.lookEyes(head(P.waldB), 0.7); }
     // ---- fantasy diner ----
     const ava = P.ava, avaStart = A(DINER, 2.4, 0, 2.2), avaEnd = A(DINER, 0.2, 0, 1.2);   // fix7: was (1.6,-2.6) -> (-0.35,-0.5), behind the table
-    walk(ava, avaStart, avaEnd, 43.3, 44.9, [-1, -0.25]);
+    walk(ava, avaStart, avaEnd, 43.3, 44.9, [-0.55, 1]);   // fix7b: turned toward the camera (her back showed)
     { const L = ava.lookDir(), r = ava.R, pv = t < 44.9 ? lerpV(avaStart, avaEnd, Math.max(0, Math.min(1, (t - 43.3) / 1.6))) : avaEnd;
       const cb: V3 = [pv[0] + L.x * 0.17 - r[0] * 0.07, 0.66, pv[2] + L.z * 0.17 - r[2] * 0.07]; ava.hand.L = cb;
       this.clip.position.set(...cb); this.clip.rotation.set(-0.9, Math.atan2(L.x, L.z), 0);
