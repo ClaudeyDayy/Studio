@@ -3,7 +3,7 @@
 Arian's rules for his video shorts, all in one place. Written 2026-11-26.
 More detail lives in: `src/house/START-HERE.md` (how to work), `src/house/look.ts` (his look numbers),
 `src/house/OUTDOOR-RULES.md` (outdoor look), `src/house/FINAL-PLAN.md` (the 12 fixes).
-If this file and an older note disagree, **this file wins**.
+**Full rules:** `docs/RULES-all-in-one.md` (all the numbers and details). If this file and that one disagree, that one wins.
 
 ---
 
@@ -12,6 +12,7 @@ If this file and an older note disagree, **this file wins**.
 - **Ask before you create or change anything.**
 - **Stop and ask before making any visuals.** It is its own step, so he can switch models.
 - For every new video, ask: **should it loop?** (the end returns to the opening). Not a default.
+  Also ask: how many **object transitions** (0-3)? **Captions** yes or no?
 - He adds all sound himself (voice, music, effects). Always deliver a **muted mp4**.
 - Do not rebuild a skill file after every change. Keep a running list in `src/house/SKILL-CHANGES.md`.
   Build the skill only when he says he is ready.
@@ -42,8 +43,11 @@ Brainstorm ideas that follow the reference's virality rules. About 60 s, 9:16.
 
 ## 5. Camera (the most important part for him)
 - **Never cuts or jumps by itself.** It flies through the 3D world like a drone. Few cuts, long chained moves.
-- Shot changes = **whip pans** (fast swing with motion blur). No fades, no dissolves, no long white flashes.
-- Smooth flights that don't stop at every shot.
+- Most joins are **matched dissolves** (one shape becomes the next), 6-12 frames, camera keeps moving. Land them between sentences.
+- 0-1 hard cuts per video (only if he says yes). **Whip pans are rare** (about 0.5 per minute); a video can have none.
+- A big change of view direction (more than about 30°) is a matched dissolve, not a camera swing.
+- No long white flashes (a time jump = 6-frame white flash).
+- Smooth flights that don't stop at every shot. No still hold longer than 1.5 s (holds creep in slowly).
 - **Mostly eye level:** camera about 0.8 × character height (people are 1.2 m, so about 1 m). Horizon near mid-frame.
   About 80 % of shots eye level. No roll over 5°.
 - The lens never comes closer than **0.3 m** to anything.
@@ -53,8 +57,8 @@ Brainstorm ideas that follow the reference's virality rules. About 60 s, 9:16.
 - One exception to "no cuts": a **dream** (the camera flies into a head and comes out in the dream).
 
 ## 6. People
-- Main cast: **Arian** (normal white man, normal hair), **Max** (older, moustache, plays the police),
-  **Ava** (Black woman, curly hair). Clothes carry the role; a character can change outfits in one video.
+- Main cast: **Arian** (white man, neat short brown hair), **Max** (white man, messy brown hair, thick moustache, often the police),
+  **Ava** (Black woman, curly hair, round glasses). Clothes carry the role; a character can change outfits in one video.
 - **3D bodies, 2D drawn heads.** Never treat the whole person as one flat card. Never squeezed or thin side-on.
 - Heads not perfectly round. Head shapes and skin colours exactly as in the **pants-bet remake of the bank video (bank2)**:
   warm cream skin, dark warm-brown outline.
@@ -81,6 +85,7 @@ Brainstorm ideas that follow the reference's virality rules. About 60 s, 9:16.
 - His **MAX FILMS logo** (`shorts-library/logo`) can be printed on objects, Zack D Films style. Test on one frame first.
 
 ## 8. Light
+- In the new method, the browser stage uses **rough plain colours only**. Blender adds colours, materials and light at the end.
 - **Strong golden direct sun** in every outdoor scene: sharp shadow edges, visible light shafts (clean, like the bank video).
 - Indoors: **sun patches** from windows with sharp bar shadows on tables, shelves, walls (fake bounce: sun shadows + warm fill + glow).
 - **Street lamps really shine:** they light the whole area around them, warm.
