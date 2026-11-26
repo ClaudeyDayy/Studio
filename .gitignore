@@ -2,3 +2,5 @@ node_modules/
 .chrome-profile/
 renders/
 *.mp4
+out/
+src/videos/_old/
