@@ -79,7 +79,7 @@ export class BomberWorld implements World {
   private stand: THREE.Group; private standTop = 1.3; private stand1: V3 = [-8.6, 0, -0.25]; private stand2: V3 = [-6.1, 0, -4.6]; private stand2Top = 1.2;
   private wingSpots: V3[] = []; private wingHoles: THREE.Mesh[] = []; private wingPlates: THREE.Mesh[] = [];
   private engSpots: V3[] = []; private engPlates: THREE.Mesh[] = []; private handPlate: THREE.Mesh;
-  private cheese: THREE.Group; private jacket: THREE.Mesh; private clip: THREE.Group; private pencil: THREE.Mesh; private chalk: THREE.Mesh;
+  private cheese: THREE.Group; private jacket: THREE.Mesh; private clip: THREE.Group; private pencil: THREE.Mesh; private chalk: THREE.Mesh; private stick!: THREE.Mesh;
   // people
   private all: Person[] = []; private P: Record<string, Player3D> = {}; private crew: { p: Player3D; at: V3; look: [number, number] }[] = [];
   private diners: { p: Player3D; at: V3; look: [number, number] }[] = [];
@@ -138,6 +138,8 @@ export class BomberWorld implements World {
     const sheet = new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.004, 0.28), MR("#F2ECDD", 0.9)); sheet.name = "writingPaper"; sheet.receiveShadow = true;
     sheet.position.set(...A(OFFICE, 0.88, 0.759, -1.5)); sheet.rotation.y = 0.12; R.add(sheet);
     this.pencil = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.12, 6), MR("#E2B23C", 0.5)); this.pencil.name = "pencil"; R.add(this.pencil);
+    // 2026-11-26 (his request): a long wooden pointer stick in Wald's left hand at the board (grip at the origin, along +y)
+    this.stick = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.009, 0.7, 8).translate(0, 0.33, 0), MR("#8A5A2E", 0.6)); this.stick.name = "pointerStick"; this.stick.castShadow = true; this.stick.visible = false; R.add(this.stick);
     this.chalk = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.05, 6), MR("#D8352E", 0.8)); this.chalk.name = "redChalk"; R.add(this.chalk);
     // ================= P6 fantasy diner =================
     const dn = fantasyDiner({ walls: "#9E63C9" }); at(dn.group, DINER);   // 2026-11-26: walls round the door (his note)
@@ -206,6 +208,12 @@ export class BomberWorld implements World {
     this.fx = new Fx(R, FX);
   }
 
+  /** the pointer in his left hand: hanging down and a little forward (k 0) -> pointing at `at` (k 1) */
+  private holdStick(p: Player3D, at: V3, k: number) {
+    const h = p.hand.L, L = p.lookDir(), down = new THREE.Vector3(L.x * 0.35, -1, L.z * 0.35).normalize();
+    const aim = new THREE.Vector3(at[0] - h[0], at[1] - h[1], at[2] - h[2]).normalize(), dir = down.clone().lerp(aim, k).normalize();
+    this.stick.visible = true; this.stick.position.set(h[0], h[1], h[2]); this.stick.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+  }
   // ---------------- small builders ----------------
   // 2026-11-26: darker steel (it read as white paper)
   private plate(s: number) { const m = new THREE.Mesh(new THREE.BoxGeometry(s, 0.02, s), MR("#6E747B", 0.5, 0.45)); m.name = "steelPlate"; m.castShadow = m.receiveShadow = true; m.visible = false; return m; }
@@ -435,13 +443,14 @@ export class BomberWorld implements World {
       const k = sm(49.2, 49.9, t), m = t < 45 ? MODEL_DESK : lerpV(MODEL_DESK, MODEL_UP, k);
       this.model.group.position.set(m[0], m[1] + 0.01 * Math.sin(t * 2) * k, m[2]); this.model.group.rotation.set(0.05 * k, 0, 0.08 * k); this.model.update(t, { spin: 0, gear: 0 });   // fix8: gear up (the tiny wheels hung under the model)
     }
-    this.chalk.visible = false;
+    this.chalk.visible = false; this.stick.visible = false;
     if (show(P.waldB, sp === "office2" || sp === "office3")) {
       if (sp === "office2") {                                          // S10: asks; on "Where are the holes..." turns and points at the clean engines
         const turn = sm(40.95, 41.3, t);
         base(P.waldB, WALD_BOARD, [0.45 + 0.35 * turn, 1 - 1.65 * turn]);
         P.waldB.lookEyes(turn > 0.5 ? BOARD_MARKS[1] : head(P.col1), 0.8);
-        if (turn > 0) { const k = sm(41.1, 41.45, t); P.waldB.hand.L = lerpV(P.waldB.restHand("L"), reachTo(shoulder(P.waldB, -1), BOARD_MARKS[1], 0.5), k); }
+        const k = turn > 0 ? sm(41.1, 41.45, t) : 0; P.waldB.hand.L = lerpV(P.waldB.restHand("L"), reachTo(shoulder(P.waldB, -1), BOARD_MARKS[1], 0.5), k);
+        this.holdStick(P.waldB, BOARD_MARKS[1], k);
       } else {                                                         // S14: walks along the board, circling engines and cockpit in red chalk
         const k = sm(54.15, 56.36, t) * 5, i = Math.min(4, Math.floor(k)), mk = BOARD_MARKS[i], prev = BOARD_MARKS[Math.max(0, i - 1)];
         const bx = (q: V3) => q[0] - 0.3, x = i === 0 ? bx(mk) : bx(prev) + (bx(mk) - bx(prev)) * sm(0, 0.35, k - i), pos: V3 = [x, 0, BOARD_C[2] + 0.58];
@@ -449,6 +458,7 @@ export class BomberWorld implements World {
         const ang = (k - i) * Math.PI * 2.1 - Math.PI / 2, r = i === 4 ? 0.13 : 0.15, target: V3 = [mk[0] + Math.cos(ang) * r, mk[1] - Math.sin(ang) * r, mk[2] + 0.02];
         const h = reachTo(shoulder(P.waldB, 1), target, 0.55); P.waldB.hand.R = h; P.waldB.lookEyes(mk, 0.9);
         this.chalk.visible = true; this.chalk.position.set(...h); this.chalk.rotation.set(Math.PI / 2, 0, 0);
+        this.holdStick(P.waldB, mk, 0);   // the stick rests in his other hand while he draws
       }
     }
     if (show(P.col1, sp === "office2")) { base(P.col1, A(OFFICE, -2.3, 0, -0.6), flat(-0.05, -1)); P.col1.lookEyes(t < 41.2 ? head(P.waldB) : BOARD_MARKS[1], 0.8); }
