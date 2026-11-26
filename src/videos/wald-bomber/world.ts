@@ -23,14 +23,14 @@ import {
 
 // who is who: main cast + extras (base = the library head they use). Hats come with the outfit (pilot: hat_max, general: hat_omar).
 export const CAST: Cast3DSpec = {
-  max: { outfit: "pilot" }, arian: { outfit: "suit" }, omar: { outfit: "general", pictureFaces: true }, ava: { outfit: "dress" },
+  max: { outfit: "pilot" }, arian: { outfit: "suit" }, omar: { outfit: "general", pictureFaces: true }, ava: { outfit: "dress", skin: [110, 68, 46], rig: { skin: "#6E442E", ink: "#150C0C" } },   // fix7: dark skin set (as in bank2), so her drawn face sits on her head (it floated off before)
   crew1: { outfit: "pilot", base: "minh" }, crew2: { outfit: "pilot", base: "minh2" }, crew3: { outfit: "pilot", base: "minh3" }, crew4: { outfit: "pilot", base: "cop", pictureFaces: true },
   gen1: { outfit: "general", base: "cop", pictureFaces: true }, gen2: { outfit: "general", base: "minh2" },
   mech1: { outfit: "farmer", base: "minh" }, mech2: { outfit: "casual", base: "minh3" },
   din1: { outfit: "casual", base: "tina" }, din2: { outfit: "hoodie", base: "nora" }, din3: { outfit: "luckytee", base: "minh" },
   // new extras for the real timing (same outfits and heads as above, already in public\library)
   col1: { outfit: "suit", base: "minh2" }, col2: { outfit: "suit", base: "cop", pictureFaces: true },   // Wald's two colleagues (S10)
-  din4: { outfit: "casual", base: "minh2" }, din5: { outfit: "luckytee", base: "minh" },                  // the customers who leave (S11)
+  din4: { outfit: "casual", base: "minh2" }, din5: { outfit: "hoodie", base: "tina" },                  // the customers who leave (S11)
 };
 export const load = async () => { const [bomber, cast] = await Promise.all([loadBomber(), loadCast3d(CAST)]); return { bomber, cast }; };
 
