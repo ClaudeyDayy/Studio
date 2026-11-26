@@ -32,3 +32,11 @@ FINAL: 2026-11-16 STOPPED EARLY (session ran out). Done: flaw 2 only. Drafts NOT
 - Import in Blender: blender_import.py bridge_load(glb, save_as). Needs a window context for the glTF importer (temp_override), run it from a timer when called over the bridge.
 - Imported sun comes in at ~0.01 power and there is no world: add sun + sky before judging. Lit hole decals glow stronger in Blender.
 - Long Blender jobs over the bridge: queue them with bpy.app.timers and poll a log file (the bridge times out otherwise).
+- LOOK SCRIPT: src/videos/wald-bomber/blender_look.py -> look(). Look only, never moves anything. Run it on a backup copy: reopen the clean .blend, save as, look(), stills (out\blender-<video>\run_lookN.py).
+- World: CAMERA-RAY SPLIT. The camera sees the golden gradient sky; light and reflections come from a neutral fill (engine hemisphere #dfeeff/#8a7a68, strength 0.6) through Light Path "Is Camera Ray". A warm world alone turns metal brown.
+- Clouds: engine cloud Sprites do not export (empties only). Rebuild them as camera-facing cards (puff textures like the engine puffTex, unlit, fog to haze by view distance).
+- Blender 5 compositor API: scene.compositing_node_group + NodeGroupOutput (not scene.node_tree). Bloom glare (threshold 0.95, strength 0.5, size 0.6) + mist haze.
+- Render: Eevee, view transform Standard (AgX washes colours out). Sun direction always from the engine.
+- Ray cones (hole beams): additive with soft sides (Layer Weight facing), else the hard edges look like stripes.
+- Polished bare metal (Arian OK): metallic 0.85, roughness map x0.22, normal strength 4.5 (rivets, sheet gaps). glTF metal maps come in ~0, set metallic by hand.
+- Bug lesson: never compare Blender node handles with "is"; use names, or clear and rebuild.
