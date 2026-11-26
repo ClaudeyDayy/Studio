@@ -12,7 +12,7 @@ import { Player3D, buildCast3d, loadCast3d, Cast3DSpec, Cast3DAssets } from "../
 import { makeLife, FaceEv } from "../../engine/cast/life";
 import type { FaceKey } from "../../engine/cast/face";
 import { ground } from "../../engine/places";
-import { MR, mkCanvas, canvasTex, noInk } from "../../engine/kit";
+import { MR, mkCanvas, canvasTex, noInk, noInkAll } from "../../engine/kit";
 import { Fx, FxEvent } from "../../engine/fx/fx";
 import { loadBomber, bomber, holes, cockpit, BomberAsset, Bomber, Holes } from "../../engine/bomber";
 import { cloudSea, airfield, office, fantasyDiner } from "../../engine/moreplaces";
@@ -128,7 +128,7 @@ export class BomberWorld implements World {
       if (o.name === "paper" && o.position.x > 0.52 && o.position.x < 1.2) o.visible = false;          // clear the middle of the desk
     });
     this.lampLight.position.set(...LAMP);
-    this.model = bomber(B, { name: "modelBomber" }); holes(this.model, { wingL: 16, wingR: 10, body: 6, seed: 7, size: 0.9 }); this.model.group.scale.setScalar(0.02); R.add(this.model.group);
+    this.model = bomber(B, { name: "modelBomber" }); holes(this.model, { wingL: 16, wingR: 10, body: 6, seed: 7, size: 0.9 }); this.model.group.scale.setScalar(0.02); noInkAll(this.model.group); R.add(this.model.group);   // fix8: no ink on the tiny model (a stray outline hung under it)
     this.pencil = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.12, 6), MR("#E2B23C", 0.5)); this.pencil.name = "pencil"; R.add(this.pencil);
     this.chalk = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.05, 6), MR("#D8352E", 0.8)); this.chalk.name = "redChalk"; R.add(this.chalk);
     // ================= P6 fantasy diner =================
@@ -167,7 +167,7 @@ export class BomberWorld implements World {
     this.P.mech1 = person("mech1", [-9.6, 0, -12.7], { face: F([0, "neutral"], [18.5, "strain"], [20.15, "satisfied"], [21.0, "happy"], [22.6, "smile"], [56.8, "content"], [57.9, "strain"], [58.2, "satisfied"], [59.5, "strain"], [59.8, "satisfied"]) });
     this.P.mech2 = person("mech2", [13.5, 0, -5], { face: F([0, "neutral"], [13.4, "sad"], [18.3, "content"], [56.8, "neutral"], [58.5, "content"]) });
     // Wald: seated at the desk (S09, S12), standing at the board (S10, S14); colleagues (S10)
-    this.P.waldS = person("arian", WALD_DESK, { seat: 0.45, face: F([0, "neutral"], [35.4, "content"], [36.6, "smile"], [48.7, "neutral"], [49.4, "content"], [49.95, "satisfied"]) });
+    this.P.waldS = person("arian", WALD_DESK, { seat: 0.45, face: F([0, "neutral"], [35.4, "content"], [36.6, "smile"], [48.7, "neutral"], [49.4, "content"], [49.95, "happy"]) });
     this.P.waldB = person("arian", WALD_BOARD, { face: F([0, "neutral"], [38.3, "content"], [39.2, "smug"], [40.4, "neutral"], [41.2, "surprised"], [42.15, "smile"], [53.7, "content"], [55.1, "satisfied"], [56.0, "smug"]) });
     this.P.col1 = person("col1", A(OFFICE, -2.3, 0, -0.6), { face: F([0, "neutral"], [39.6, "confused"], [41.3, "surprised"]) });
     this.P.col2 = person("col2", A(OFFICE, -0.15, 0, -0.1), { life: [[0, "neutral"], [41.4, "shock"]] });
@@ -418,7 +418,7 @@ export class BomberWorld implements World {
     } else this.pencil.visible = false;
     { // the model bomber: on the desk, then in his hand (S12)
       const k = sm(49.2, 49.9, t), m = t < 45 ? MODEL_DESK : lerpV(MODEL_DESK, MODEL_UP, k);
-      this.model.group.position.set(m[0], m[1] + 0.01 * Math.sin(t * 2) * k, m[2]); this.model.group.rotation.set(0.05 * k, 0, 0.08 * k); this.model.update(t, { spin: 0 });
+      this.model.group.position.set(m[0], m[1] + 0.01 * Math.sin(t * 2) * k, m[2]); this.model.group.rotation.set(0.05 * k, 0, 0.08 * k); this.model.update(t, { spin: 0, gear: 0 });   // fix8: gear up (the tiny wheels hung under the model)
     }
     this.chalk.visible = false;
     if (show(P.waldB, sp === "office2" || sp === "office3")) {

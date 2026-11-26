@@ -71,13 +71,13 @@ const shots: Shot[] = [
   { t: 15.45, space: "hangar", from: P(A(FIELD, 2.0, 1.25, 35.4), A(FIELD, -1.0, 1.9, 42.7), 44, 8), to: P(A(FIELD, 2.0, 1.25, 35.4), A(FIELD, -1.0, 1.9, 42.7), 44, 8), move: 0, creep: 0.14, collapse: { dur: 0.6, hold: 0.3 }, tag: "S04" },
   { t: 17.2, space: "hangar", to: P(A(FIELD, 1.6, 1.25, 36.2), A(FIELD, -0.4, 1.85, 42.7), 44, 8), move: 1.0, creep: 0.08 },
   // S05 18.46-20.63  "Armor every spot that got hit."  low insert on the wing: plates go on, stamp on "hit"
-  { t: 18.35, space: "field", from: P(A(FIELD, -6.7, 2.75, 1.9), A(FIELD, -8.7, 2.3, -0.9), 46), to: P(A(FIELD, -6.85, 2.65, 1.6), A(FIELD, -8.7, 2.3, -0.9), 46), move: 1.6, creep: 0.06, dissolve: 0.35, tag: "S05" },
+  { t: 18.35, space: "field", from: P(A(FIELD, -8.2, 3.95, -5.2), A(FIELD, -8.6, 2.75, -2.7), 46), to: P(A(FIELD, -8.3, 3.85, -4.95), A(FIELD, -8.6, 2.75, -2.7), 46),   /* fix8: above the wing from the front, holes and the mechanic facing us */ move: 1.6, creep: 0.06, dissolve: 0.35, tag: "S05" },
   // S06 20.63-24.57  "Jack laughs ... Swiss cheese wearing a steel jacket."  two-shot, then push to the cheese
   { t: 20.5, space: "field", from: P(A(FIELD, -5.4, 1.05, 3.1), A(FIELD, -7.7, 1.3, 0.5), 50), to: P(CHEESE_CAM0, A(FIELD, -7.5, 1.25, 0.5), 50), move: 1.2, creep: 0.06, dissolve: 0.35, tag: "S06" },
   { t: 22.35, space: "field", from: P(near(CHEESE, CHEESE_APP, 0.8), CHEESE, 40), to: P(near(CHEESE, CHEESE_APP, 0.55), CHEESE, 40), move: 1.0, creep: 0.05, dissolve: 0.35 },   // fix7c: matched dissolve into the cheese close-up (a camera swing round his head was too big a turn)
   { t: 23.75, space: "field", to: P(level(near(CHEESE, CHEESE_APP, 0.32), CHEESE[1] + 0.02), CHEESE, 38), move: 0.8 },
   // S07a 24.57-27.38  "Still, bombers keep vanishing over Europe."  storm, plated planes in a line, the back one slips into cloud
-  { t: 24.45, space: "storm", from: P(A(STORM, 12, 2, 24), A(STORM, -16, -2, -10), 48), to: P(A(STORM, 9, 2.5, 22), A(STORM, -18, -2.5, -12), 48), move: 1.6, drift: [-1.2, 0, -0.6], dissolve: 0.4, tag: "S07a" },
+  { t: 24.45, space: "storm", from: P(A(STORM, 16, 9, 30), A(STORM, -20, -1, -12), 48), to: P(A(STORM, 13, 9, 28), A(STORM, -22, -1.5, -14), 48),   /* fix8: above the cloud, the line of planes readable */ move: 1.6, drift: [-1.2, 0, -0.6], dissolve: 0.4, tag: "S07a" },
   // S07b+S08 27.38-33.24  "Armor is heavy ... Wait, why would armor ... not help?"  tally board, push to Max on "Wait"
   { t: 27.25, space: "field", from: camT(5.0, 1.05, 3.6, 1.0, 1.3, 0.3, 50), to: camT(4.4, 1.0, 3.0, 1.0, 1.3, 0.3, 50),   /* fix7: whole board + Max in depth */ move: 1.4, creep: 0.05, dissolve: 0.4, tag: "S07b" },
   { t: 28.95, space: "field", to: camT(3.9, 1.0, 2.6, 1.2, 1.25, 0.4, 48), move: 0.65, creep: 0.06 },
@@ -99,10 +99,10 @@ const shots: Shot[] = [
   { t: 48.95, space: "office", to: P(A(OFFICE, 0.4, 1.28, 1.3), A(OFFICE, 1.15, 1.0, -1.6), 52), move: 1.3 },
   { t: 50.25, space: "office", to: P(A(OFFICE, 1.42, 1.14, -0.75), MODEL_UP, 44), move: 0.45 },
   // S13 50.75-53.75  "A bad hit to the engine, and a plane never makes it home."  model -> real plane; hit, it drops into the clouds
-  { t: 50.55, space: "sky", from: P(A(PB, -1.5, 0.6, 30), A(PB, 0.5, 0, 0), 44), to: P(A(PB, -1.2, 0.5, 29), A(PB, 0.8, -0.3, 0), 44), move: 1.2, creep: 0.3, dissolve: 0.4, tag: "S13" },
-  { t: 52.0, space: "sky", to: P(A(PB, -1.5, 4, 27), A(PB, 3, -18, 0), 48), move: 1.35 },
+  { t: 50.55, space: "sky", from: P(A(PB, -1.5, 0.6, 44), A(PB, 0.5, 0, 0), 46), to: P(A(PB, -1.2, 0.5, 42), A(PB, 0.8, -0.3, 0), 46),   /* fix8: farther back, the whole plane fits */ move: 1.2, creep: 0.3, dissolve: 0.4, tag: "S13" },
+  { t: 52.0, space: "sky", to: P(A(PB, -1.5, 4, 38), A(PB, 3, -18, 0), 48), move: 1.35 },
   // S14 53.75-56.80  "So the clean, untouched spots are the deadly ones."  red chalk circles on the clean engines and cockpit
-  { t: 53.6, space: "office3", from: P(A(OFFICE, -1.3, 1.55, 0.0), A(OFFICE, -1.4, 1.7, -2.42), 52), to: P(A(OFFICE, -1.3, 1.6, -0.2), A(OFFICE, -1.4, 1.7, -2.42), 52), move: 1.4, creep: 0.12, dissolve: 0.4, tag: "S14" },
+  { t: 53.6, space: "office3", from: P(A(OFFICE, -0.5, 1.3, 1.3), A(OFFICE, -1.4, 1.45, -2.42), 52), to: P(A(OFFICE, -0.55, 1.32, 1.1), A(OFFICE, -1.4, 1.45, -2.42), 52),   /* fix8: Wald in the shot, drawing the circles */ move: 1.4, creep: 0.12, dissolve: 0.4, tag: "S14" },
   // S15 56.80-60.63  "Legend says the generals listen, and armor goes there instead."  over Max's shoulder: plates go on the engine
   { t: 56.7, space: "field", from: P(A(FIELD, -2.6, 1.25, -0.9), ENGINE_LOOK, 52, 8), to: P(A(FIELD, -2.77, 1.19, -1.08), ENGINE_LOOK, 52, 8), move: 1.2, orbit: -3, dissolve: 0.4, tag: "S15" },
   { t: 60.1, space: "field", to: P(A(FIELD, -3.8, 5.5, -2.5), A(FIELD, -12, 28, -22), 60), move: 0.55 },                // fly up into the sky
