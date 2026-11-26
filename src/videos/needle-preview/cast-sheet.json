@@ -1,0 +1,7 @@
+{
+  "look": "3d",
+  "scenes": [
+    { "character": "max", "outfit": "astro_max", "hat": "bubble", "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "ava", "outfit": "astro_ava", "hat": "bubble", "faces": ["neutral", "smug", "shock", "grin"] }
+  ]
+}

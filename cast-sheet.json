@@ -1,0 +1,6 @@
+{
+  "scenes": [
+    { "id": "chess", "character": "arian", "outfit": "casual", "faces": ["neutral","smug","shock","grin"], "back": true },
+    { "id": "chess2", "character": "max", "outfit": "office", "faces": ["neutral","smug","shock","grin"], "back": true }
+  ]
+}

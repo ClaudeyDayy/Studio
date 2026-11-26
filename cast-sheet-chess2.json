@@ -1,0 +1,4 @@
+{ "environments": [], "scenes": [
+  { "id": "ALL", "character": "arian", "outfit": "casual", "faces": ["neutral", "smug", "shock", "grin"], "back": true },
+  { "id": "ALL", "character": "max", "outfit": "office", "hat": "cowboy", "faces": ["neutral", "smug", "shock", "grin"], "back": true }
+] }

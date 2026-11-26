@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html><head><style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body><canvas id="c" width="600" height="1000"></canvas>
+<script>
+// US Army jungle fatigue shirt (Vietnam tunnels video, 2026-11-12), on the 600x1000 library grid (torso x 205-396, y 461-727).
+// ?v=torso_front | torso_back | preview          Light from the upper left. Same torso shape and ink as police.html.
+// Olive shirt, open collar over an olive T-shirt, slanted chest pockets with flaps, "U.S. ARMY" tape + a name tape,
+// web suspenders (front straps, Y harness at the back), khaki web belt with ammo pouches; canteen on the back.
+const v = (location.search.match(/v=(\w+)/) || [, "torso_front"])[1];
+const c = document.getElementById("c"), g = c.getContext("2d");
+const INK = "#1a1020";
+const OL = "#5B6B2E", OL_L = "#71833A", OL_D = "#46531F", OL_DD = "#343D16", TEE = "#4B5626";
+const WEB = "#8A8550", WEB_D = "#66623A", WEB_L = "#A6A066", METAL = "#3A3A36";
+const stroke = (w = 3, col = INK) => { g.lineWidth = w; g.strokeStyle = col; g.lineJoin = "round"; g.lineCap = "round"; g.stroke(); };
+const fill = (col) => { g.fillStyle = col; g.fill(); };
+
+function torso() {
+  g.beginPath(); g.moveTo(250, 461); g.lineTo(354, 461);
+  g.bezierCurveTo(380, 500, 397, 560, 396, 620); g.bezierCurveTo(397, 688, 362, 727, 301, 727);
+  g.bezierCurveTo(240, 727, 204, 688, 205, 620); g.bezierCurveTo(204, 560, 222, 500, 250, 461); g.closePath();
+}
+function cloth(back) {
+  torso();
+  const gr = g.createLinearGradient(205, 0, 396, 0);
+  gr.addColorStop(0, OL_L); gr.addColorStop(0.3, OL); gr.addColorStop(0.8, OL); gr.addColorStop(1, OL_D);
+  g.fillStyle = gr; g.fill();
+  g.save(); torso(); g.clip();
+  const L = back ? -1 : 1, X = (x) => (back ? 601 - x : x);
+  g.fillStyle = "rgba(30,36,10,0.35)"; g.beginPath(); g.ellipse(X(398), 600, 30, 140, 0, 0, 7); g.fill();
+  g.fillStyle = "rgba(255,255,230,0.10)"; g.beginPath(); g.ellipse(X(214), 585, 10, 95, 0.08 * L, 0, 7); g.fill();
+  g.fillStyle = "rgba(30,36,10,0.18)"; g.beginPath(); g.ellipse(300, 727, 110, 40, 0, 0, 7); g.fill();
+  g.strokeStyle = "rgba(30,36,10,0.5)"; g.lineWidth = 2.2; g.lineCap = "round";
+  const fold = (a, b, cx, cy) => { g.beginPath(); g.moveTo(X(a[0]), a[1]); g.quadraticCurveTo(X(cx), cy, X(b[0]), b[1]); g.stroke(); };
+  fold([232, 616], [256, 642], 240, 632); fold([370, 610], [348, 642], 362, 630);
+  fold([228, 694], [250, 710], 234, 705); fold([374, 692], [354, 712], 368, 706); fold([300, 692], [292, 716], 300, 706);
+  g.strokeStyle = "rgba(255,255,230,0.12)";
+  fold([236, 612], [260, 638], 245, 626); fold([372, 692], [352, 708], 366, 702);
+  // shoulder seams
+  g.strokeStyle = "rgba(30,36,10,0.5)"; g.lineWidth = 1.6; g.setLineDash([4, 3]);
+  g.beginPath(); g.moveTo(222, 512); g.quadraticCurveTo(300, 528, 380, 512); g.stroke(); g.setLineDash([]);
+  g.restore();
+}
+function tape(x, y, w, text) {           // cloth tape with stitched edge
+  g.beginPath(); g.roundRect(x - w / 2, y - 7, w, 14, 2); fill("#6D7C38"); stroke(1.8);
+  g.beginPath(); g.roundRect(x - w / 2 + 2.5, y - 4.5, w - 5, 9, 1.5); g.setLineDash([2, 2]); stroke(0.9, "rgba(20,24,8,0.6)"); g.setLineDash([]);
+  if (text) { g.fillStyle = "#121410"; g.font = '900 8.5px "Arial Black", Arial, sans-serif'; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(text, x, y + 0.5); }
+}
+function strap(pts, w = 13) {            // khaki web strap along a polyline
+  const path = () => { g.beginPath(); g.moveTo(...pts[0]); for (let i = 1; i < pts.length; i++) g.lineTo(...pts[i]); };
+  path(); g.lineWidth = w + 4; g.strokeStyle = INK; g.lineJoin = "round"; g.lineCap = "butt"; g.stroke();
+  path(); g.lineWidth = w; g.strokeStyle = WEB; g.stroke();
+  path(); g.lineWidth = 1.2; g.strokeStyle = "rgba(255,255,220,0.35)"; g.setLineDash([3, 3]); g.stroke(); g.setLineDash([]);
+}
+function belt(back) {
+  const X = (x) => (back ? 601 - x : x);
+  g.save(); torso(); g.clip();
+  g.beginPath(); g.moveTo(200, 646); g.quadraticCurveTo(300, 654, 400, 646); g.lineTo(400, 674); g.quadraticCurveTo(300, 682, 200, 674); g.closePath();
+  const bg = g.createLinearGradient(0, 646, 0, 680); bg.addColorStop(0, WEB_L); bg.addColorStop(0.5, WEB); bg.addColorStop(1, WEB_D);
+  g.fillStyle = bg; g.fill(); stroke(2.5);
+  // the eyelet rows of a pistol belt
+  g.fillStyle = "#2A2A22";
+  for (let x = 206; x < 398; x += 12) { g.beginPath(); g.arc(x, 652 + (1 - ((x - 300) / 100) ** 2) * 3.5, 1.5, 0, 7); g.fill(); g.beginPath(); g.arc(x, 670 + (1 - ((x - 300) / 100) ** 2) * 3.5, 1.5, 0, 7); g.fill(); }
+  if (!back) {
+    // ammo pouches on both sides, with flaps and a little snap
+    for (const x of [244, 356]) {
+      g.beginPath(); g.roundRect(x - 17, 650, 34, 36, 5); fill(OL_D); stroke(2.2);
+      g.beginPath(); g.moveTo(x - 18, 650); g.lineTo(x + 18, 650); g.lineTo(x + 17, 664); g.quadraticCurveTo(x, 670, x - 17, 664); g.closePath(); fill(OL); stroke(2);
+      g.beginPath(); g.arc(x, 664, 2.6, 0, 7); fill(METAL);
+    }
+    // black metal buckle
+    g.beginPath(); g.roundRect(286, 648, 30, 30, 4);
+    const kg = g.createLinearGradient(286, 648, 316, 678); kg.addColorStop(0, "#6C6C66"); kg.addColorStop(0.5, "#3A3A36"); kg.addColorStop(1, "#1E1E1C");
+    g.fillStyle = kg; g.fill(); stroke(2.4);
+    g.beginPath(); g.roundRect(293, 655, 16, 16, 2); fill(WEB_D); stroke(1.4);
+    g.beginPath(); g.moveTo(290, 652); g.lineTo(300, 652); stroke(1.8, "rgba(255,255,255,0.45)");
+  } else {
+    // canteen in its olive cover, black cap (back, on the right side)
+    const x = X(352);
+    g.beginPath(); g.roundRect(x - 22, 652, 44, 50, 14); fill(OL_D); stroke(2.4);
+    g.beginPath(); g.roundRect(x - 22, 652, 44, 14, 5); fill(OL); stroke(2);
+    g.beginPath(); g.moveTo(x - 10, 690); g.quadraticCurveTo(x, 694, x + 10, 690); stroke(1.4, "rgba(255,255,220,0.3)");
+    g.beginPath(); g.arc(x, 659, 3, 0, 7); fill(METAL);
+  }
+  g.restore();
+}
+function front() {
+  cloth(false);
+  g.save(); torso(); g.clip();
+  // olive T-shirt in the open collar
+  g.beginPath(); g.moveTo(266, 458); g.lineTo(334, 458); g.lineTo(300, 512); g.closePath(); fill(TEE);
+  g.beginPath(); g.moveTo(274, 458); g.quadraticCurveTo(300, 474, 326, 458); stroke(2, "rgba(20,24,8,0.6)");
+  // hidden-button placket
+  g.beginPath(); g.moveTo(296, 510); g.lineTo(296, 648); stroke(1.6, "rgba(30,36,10,0.6)");
+  g.beginPath(); g.moveTo(304, 512); g.lineTo(304, 648); stroke(1.2, "rgba(255,255,230,0.15)");
+  // collar points
+  for (const s of [-1, 1]) {
+    g.beginPath(); g.moveTo(300 + s * 36, 458); g.lineTo(300 + s * 3, 510); g.lineTo(300 + s * 22, 520); g.lineTo(300 + s * 52, 472); g.closePath();
+    fill(s < 0 ? OL_L : OL); stroke(2.4);
+  }
+  // slanted chest pockets with flaps and buttons (the jungle-shirt look)
+  for (const s of [-1, 1]) {
+    const x = 300 + s * 50;
+    g.save(); g.translate(x, 584); g.rotate(-s * 0.16);
+    g.beginPath(); g.moveTo(-24, -14); g.lineTo(24, -14); g.lineTo(23, 22); g.quadraticCurveTo(0, 27, -23, 22); g.closePath();
+    fill("rgba(255,255,230,0.05)"); stroke(1.8, "rgba(20,24,8,0.85)");
+    g.beginPath(); g.moveTo(-27, -22); g.lineTo(27, -22); g.lineTo(26, -8); g.lineTo(0, -1); g.lineTo(-26, -8); g.closePath(); fill(OL_D); stroke(2.2);
+    g.beginPath(); g.arc(0, -7, 3.2, 0, 7); fill(METAL); stroke(1.2);
+    g.restore();
+  }
+  // tapes above the pockets: name tape (viewer's left), U.S. ARMY (viewer's right)
+  tape(250, 545, 50, ""); tape(352, 545, 50, "U.S. ARMY");
+  g.restore();
+  // web suspenders from the shoulders down to the belt
+  g.save(); torso(); g.clip();
+  strap([[244, 456], [234, 520], [226, 600], [226, 652]]);
+  strap([[356, 456], [366, 520], [374, 600], [374, 652]]);
+  g.restore();
+  belt(false);
+}
+function backSide() {
+  cloth(true);
+  g.save(); torso(); g.clip();
+  g.beginPath(); g.moveTo(258, 458); g.lineTo(342, 458); g.quadraticCurveTo(320, 482, 300, 482); g.quadraticCurveTo(280, 482, 258, 458); g.closePath(); fill(OL_D); stroke(2.4);
+  g.beginPath(); g.moveTo(300, 530); g.lineTo(300, 648); stroke(1.4, "rgba(30,36,10,0.55)");
+  // Y harness of the suspenders
+  strap([[244, 456], [272, 540], [300, 568]]); strap([[356, 456], [328, 540], [300, 568]]); strap([[300, 566], [300, 652]]);
+  g.beginPath(); g.roundRect(290, 556, 20, 18, 3); fill(METAL); stroke(1.8);
+  g.restore();
+  belt(true);
+}
+if (v === "preview") { g.fillStyle = "#C4C6D2"; g.fillRect(0, 0, 600, 1000); g.save(); g.translate(-100, 0); front(); g.restore(); g.save(); g.translate(100, 0); backSide(); g.restore(); }
+else if (v === "torso_front") front();
+else if (v === "torso_back") backSide();
+document.title = "done";
+</script></body></html>

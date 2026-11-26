@@ -1,0 +1,12 @@
+{
+  "look": "3d",
+  "scenes": [
+    { "character": "arian", "outfit": "army", "hat": "helmet", "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "arian", "outfit": "army", "hat": "officer", "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "max", "outfit": "army", "hat": "helmet", "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "max", "outfit": "casual", "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "minh", "outfit": "farmer", "hat": "nonla", "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "minh2", "outfit": "farmer", "hat": "nonla", "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "minh3", "outfit": "farmer", "hat": "nonla", "faces": ["neutral", "smug", "shock", "grin"] }
+  ]
+}

@@ -1,0 +1,84 @@
+// THE WORLD: the place, the lights, the people, the props. update() places everything for time t.
+// A general open place to start from: ground, a back wall, sun + sky light, two standing people, one example prop.
+// Replace the place and the props with your own; keep the light rig and the people code.
+import * as THREE from "three";
+import { NOINK } from "../../engine/post/ink";
+import { castPaths, loadImages as loadAll, Imgs } from "../../engine/cast/assets";
+import { Player, buildCast } from "../../engine/cast/player";
+import { M, MT, mkCanvas, canvasTex, popScale, hull } from "../../engine/kit";
+import type { World } from "../../engine/video";
+import type { CamState } from "../../engine/core/camera";
+import { BOX, LIFE, SEED, Who, FACES, LIGHT, FX } from "./story";
+import { applyLight } from "../../engine/core/lights";
+import { Fx } from "../../engine/fx/fx";
+
+// who is in the video: library/cast/<name>, outfit = library/wardrobe/<outfit>, optional hat = library/hats/<hat>
+export const CAST: Record<Who, { outfit: string; hat?: string }> = { arian: { outfit: "casual" }, max: { outfit: "office" } };
+export const loadImages = () => loadAll(castPaths(CAST));     // add your own pictures here: loadAll({ ...castPaths(CAST), sign: "myvideo/sign.png" })
+
+// a painted ground texture (soft stripes); swap for your own
+const groundTex = () => {
+  const c = mkCanvas(512, 512), g = c.getContext("2d")!;
+  g.fillStyle = "#C9A27A"; g.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? "#BF966D" : "#D2AD86"; g.fillRect(0, i * 64, 512, 64); }
+  const t = canvasTex(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(4, 4); return t;
+};
+
+export class SimpleWorld implements World {
+  root = new THREE.Group();
+  private sun = new THREE.DirectionalLight("#fff0d6", 2.8);
+  private hemi = new THREE.HemisphereLight("#ffe9c8", "#857a72", 0.6);
+  private people: Player[] = [];
+  private box: THREE.Group; private fx: Fx;
+  private v = new THREE.Vector3(); private fwd = new THREE.Vector3();
+
+  constructor(imgs: Imgs) {
+    const R = this.root;
+    R.add(this.hemi, this.sun, this.sun.target);
+    this.sun.castShadow = true; this.sun.shadow.mapSize.set(4096, 4096);
+    const add = (g: THREE.BufferGeometry, m: THREE.Material, x: number, y: number, z: number) => {
+      const o = new THREE.Mesh(g, m); o.position.set(x, y, z); o.castShadow = true; o.receiveShadow = true; R.add(o); return o;
+    };
+    // ---- the place ----
+    const ground = add(new THREE.PlaneGeometry(12, 12), MT(groundTex()), 0, 0, 0); ground.rotation.x = -Math.PI / 2; ground.castShadow = false;
+    add(new THREE.BoxGeometry(12, 3.5, 0.2), M("#6FA8A0"), 0, 1.75, -4);          // back wall
+    add(new THREE.BoxGeometry(0.2, 3.5, 8), M("#E8A33D"), -5, 1.75, 0);           // side wall
+    // ---- the people (standing; pivot = the feet) ----
+    const cast = { arian: buildCast(imgs, "arian", { drawnFace: true }), max: buildCast(imgs, "max", { drawnFace: true }) };
+    const spots: [Who, number, 1 | -1][] = [["arian", 0.6, -1], ["max", -0.6, 1]];
+    for (const [who, z, facing] of spots) this.people.push(new Player(R, cast[who], who, [0, 0, z], facing, false, { life: LIFE[who], seed: SEED[who], face: FACES[who], blinks: "auto", lit: true }));
+    // ---- an example prop: a box that pops in and out (popScale) ----
+    this.box = new THREE.Group();
+    const geo = new THREE.BoxGeometry(0.3, 0.3, 0.3);
+    const b = new THREE.Mesh(geo, M("#D2553A")); b.castShadow = b.receiveShadow = true; b.position.y = 0.15; this.box.add(b);
+    const h = hull(geo, 1.06); h.position.y = 0.15; this.box.add(h);
+    this.box.position.set(...BOX.pos); R.add(this.box);
+    this.fx = new Fx(R, FX);
+  }
+
+  update(t: number, cam: THREE.PerspectiveCamera, scene: THREE.Scene, c: CamState) {
+    // ---- camera ----
+    cam.position.set(...c.pos); cam.up.set(0, 1, 0); cam.lookAt(...c.look);
+    cam.fov = c.fov; cam.near = 0.05; cam.far = 80; cam.updateProjectionMatrix(); cam.updateMatrixWorld();
+    cam.layers.enable(NOINK);
+    cam.getWorldDirection(this.fwd);
+    // ---- light: the preset of this moment (story.ts LIGHT) ----
+    this.sun.target.position.set(0, 0.5, 0); this.sun.target.updateMatrixWorld();
+    applyLight(LIGHT.at(t), { sun: this.sun, scene, cam });
+    const sc = this.sun.shadow.camera; sc.left = -5; sc.right = 5; sc.top = 5; sc.bottom = -5; sc.near = 1; sc.far = 20; sc.updateProjectionMatrix();
+    this.sun.shadow.bias = -0.0005; this.sun.shadow.normalBias = 0.03;
+    // ---- people: hands at rest (move p.hand.L / p.hand.R to make them point, hold, wave) ----
+    const ds = this.people.map((p) => cam.position.distanceTo(new THREE.Vector3(...p.restHand("R"))));
+    this.people.forEach((p, i) => {
+      p.hand.L = p.restHand("L"); p.hand.R = p.restHand("R");
+      p.update(t, cam, 0, ds[i] > ds[1 - i] ? 100 : 110);     // night = 0; the farther person draws first
+    });
+    this.fx.update(t, cam);
+    // ---- props ----
+    const s = popScale(t, BOX.a, BOX.b);
+    this.box.visible = s > 0.01; this.box.scale.setScalar(Math.max(s, 0.001)); this.box.rotation.y = 0.4 + 0.2 * t;
+    // ---- focus = the look point; blur grows away from it ----
+    const focus = Math.max(0.3, this.v.set(...c.look).sub(cam.position).dot(this.fwd));
+    return { focus, cInf: c.blur };
+  }
+}

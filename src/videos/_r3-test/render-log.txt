@@ -1,0 +1,2 @@
+2026-11-10T23:34:39.533Z  [0-299]  300 frames in 0.6 min | first frame 1.9 s | then 0.10 s/frame | GPU ANGLE (AMD, AMD Radeon HD 6800 Series (0x00006738) Direct3D11 vs_5_0 ps_5_0, D3D11)
+2026-11-10T23:40:43.739Z  [0-299]  300 frames in 0.5 min | first frame 1.2 s | then 0.10 s/frame | GPU ANGLE (AMD, AMD Radeon HD 6800 Series (0x00006738) Direct3D11 vs_5_0 ps_5_0, D3D11)

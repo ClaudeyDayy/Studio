@@ -1,0 +1,20 @@
+{
+  "look": "3d",
+  "scenes": [
+    { "character": "max",   "outfit": "pilot",    "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "arian", "outfit": "suit",     "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "omar",  "outfit": "general",  "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "ava",   "outfit": "dress",    "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "minh",  "outfit": "pilot",    "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "minh2", "outfit": "pilot",    "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "minh3", "outfit": "pilot",    "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "cop",   "outfit": "pilot",    "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "cop",   "outfit": "general",  "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "minh2", "outfit": "general",  "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "minh",  "outfit": "farmer",   "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "minh3", "outfit": "casual",   "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "tina",  "outfit": "casual",   "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "nora",  "outfit": "hoodie",   "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "minh",  "outfit": "luckytee", "faces": ["neutral", "smug", "shock", "grin"] }
+  ]
+}

@@ -1,0 +1,5 @@
+CHECK vietnam3: 2220 frames (every 2.), lens clearance 0.3 m, camera near 0.2 m / far 900 m
+
+CAMERA: clean (never through or too close to anything)
+
+GROUND: no flat layers close enough to flicker

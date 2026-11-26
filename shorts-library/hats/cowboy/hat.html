@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html><head><style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body><canvas id="c" width="1200" height="2000"></canvas>
+<script>
+// Max's cowboy hat, drawn on the 600x1000 library grid (head picture: x 95-504, y 50-494).
+// ?v=front | back | mask | preview   &s=2 (default 2) = sharpness: 2 makes a 1200x2000 picture, 1 the old 600x1000 one
+const v = (location.search.match(/v=(\w+)/) || [, "front"])[1];
+const S = parseInt((location.search.match(/s=(\d+)/) || [, "2"])[1], 10) || 2;
+const c = document.getElementById("c"), g = c.getContext("2d");
+c.width = 600 * S; c.height = 1000 * S; g.scale(S, S);
+const INK = "#1a1020", LW = 9;
+const FELT = "#A86E3C", FELT_L = "#C98E57", FELT_D = "#7A4A26", BAND = "#3A2218", SCR = "#9C7A5E";
+const back = v === "back";
+const X = (x) => (back ? 600 - x : x);               // mirror details for the back
+
+// shapes (front view, brim curls up at both sides, dips at the front)
+function brimTop() {           // upper edge of the brim
+  g.moveTo(X(30), 150); g.bezierCurveTo(X(70), 205, X(150), 214, X(300), 214); g.bezierCurveTo(X(450), 214, X(530), 205, X(570), 150);
+}
+function brimPath() {
+  g.beginPath();
+  g.moveTo(X(30), 150);
+  g.bezierCurveTo(X(70), 205, X(150), 214, X(300), 214); g.bezierCurveTo(X(450), 214, X(530), 205, X(570), 150);
+  g.bezierCurveTo(X(582), 172, X(560), 228, X(470), 246); g.bezierCurveTo(X(400), 258, X(200), 258, X(130), 246);
+  g.bezierCurveTo(X(40), 228, X(18), 172, X(30), 150);
+  g.closePath();
+}
+function crownPath() {
+  g.beginPath();
+  g.moveTo(X(150), 214);
+  g.bezierCurveTo(X(150), 140, X(160), 80, X(196), 42);            // left side up
+  g.bezierCurveTo(X(240), 30, X(268), 58, X(300), 66);             // pinch dent in the middle of the top
+  g.bezierCurveTo(X(332), 58, X(360), 30, X(404), 42);
+  g.bezierCurveTo(X(440), 80, X(450), 140, X(450), 214);           // right side down
+  g.closePath();
+}
+function bandPath() {
+  g.beginPath();
+  g.moveTo(X(151), 166); g.bezierCurveTo(X(220), 178, X(380), 178, X(449), 166);
+  g.lineTo(X(450), 204); g.bezierCurveTo(X(380), 216, X(220), 216, X(150), 204);
+  g.closePath();
+}
+const stroke = (w = LW) => { g.lineWidth = w; g.strokeStyle = INK; g.lineJoin = "round"; g.lineCap = "round"; g.stroke(); };
+
+if (v === "mask") {
+  // what to erase from the head picture: everything above the brim's upper edge (hair spikes would poke over the brim)
+  g.fillStyle = "#000";
+  g.beginPath(); g.moveTo(0, 0); g.lineTo(600, 0); g.lineTo(600, 150); g.lineTo(570, 150);
+  g.bezierCurveTo(530, 205, 450, 222, 300, 222); g.bezierCurveTo(150, 222, 70, 205, 30, 150); g.lineTo(0, 150); g.closePath(); g.fill();
+} else {
+  if (v === "preview") {
+    g.fillStyle = "#C4C6D2"; g.fillRect(0, 0, 600, 1000);
+  }
+  // crown (behind the brim's back edge, in front of the head)
+  crownPath(); g.fillStyle = FELT; g.fill();
+  g.save(); crownPath(); g.clip();
+  g.fillStyle = FELT_D; g.beginPath(); g.ellipse(X(470), 140, 90, 160, 0, 0, 7); g.fill();          // shade side (light from the upper left)
+  g.fillStyle = FELT_L; g.beginPath(); g.ellipse(X(178), 120, 26, 90, 0.12 * (back ? -1 : 1), 0, 7); g.fill();  // lit edge
+  g.strokeStyle = "rgba(60,30,15,.55)"; g.lineWidth = 5;                                            // centre crease from the pinch
+  g.beginPath(); g.moveTo(X(300), 70); g.bezierCurveTo(X(296), 100, X(302), 130, X(298), 160); g.stroke();
+  g.strokeStyle = "rgba(60,30,15,.35)"; g.lineWidth = 4;                                            // side pinches
+  g.beginPath(); g.moveTo(X(215), 70); g.quadraticCurveTo(X(230), 100, X(226), 140); g.stroke();
+  g.beginPath(); g.moveTo(X(385), 70); g.quadraticCurveTo(X(370), 100, X(374), 140); g.stroke();
+  // band
+  bandPath(); g.fillStyle = BAND; g.fill();
+  g.save(); bandPath(); g.clip();
+  g.fillStyle = "rgba(255,255,255,.08)"; g.fillRect(0, 170, 600, 8);
+  // scratches on the band: short light nicks and two longer scuffs
+  g.strokeStyle = SCR; g.lineCap = "round";
+  const scr = [[170, 182, 186, 196, 2.2], [200, 176, 212, 190, 1.8], [232, 186, 252, 182, 2.5], [262, 178, 268, 200, 1.6], [290, 192, 318, 187, 2.2],
+    [330, 180, 338, 194, 1.8], [356, 188, 372, 184, 2], [392, 178, 404, 196, 1.8], [420, 186, 436, 190, 2.2], [180, 198, 205, 194, 1.5], [305, 200, 330, 197, 1.5]];
+  for (const [x0, y0, x1, y1, w] of scr) { g.lineWidth = w; g.beginPath(); g.moveTo(X(x0), y0); g.lineTo(X(x1), y1); g.stroke(); }
+  g.fillStyle = "rgba(20,10,5,.5)"; for (const [x, y] of [[245, 196], [348, 184], [190, 186]]) { g.beginPath(); g.arc(X(x), y, 2.5, 0, 7); g.fill(); }
+  g.restore();
+  // stitched band edges
+  g.setLineDash([7, 7]); g.strokeStyle = "#B08A63"; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(X(156), 173); g.bezierCurveTo(X(220), 184, X(380), 184, X(444), 173); g.stroke();
+  g.beginPath(); g.moveTo(X(156), 198); g.bezierCurveTo(X(220), 209, X(380), 209, X(444), 198); g.stroke();
+  g.setLineDash([]);
+  g.restore();
+  bandPath(); stroke(4);
+  crownPath(); stroke();
+  // little brass buckle on the band (front) / plain knot (back)
+  if (!back) {
+    g.fillStyle = "#E1BB1B"; g.beginPath(); g.roundRect(X(392) - 14, 174, 28, 28, 5); g.fill(); stroke(3.5);
+    g.fillStyle = BAND; g.fillRect(X(392) - 6, 182, 12, 12);
+  }
+  // brim
+  brimPath(); g.fillStyle = FELT; g.fill();
+  g.save(); brimPath(); g.clip();
+  g.fillStyle = FELT_D; g.beginPath(); g.moveTo(0, 236); g.bezierCurveTo(200, 268, 400, 268, 600, 236); g.lineTo(600, 300); g.lineTo(0, 300); g.fill();   // underside shade
+  g.fillStyle = FELT_L; g.beginPath(); g.ellipse(X(90), 190, 46, 16, 0.5 * (back ? -1 : 1), 0, 7); g.fill();
+  g.setLineDash([8, 8]); g.strokeStyle = "rgba(60,30,15,.6)"; g.lineWidth = 2.5;                    // stitching along the brim edge
+  g.beginPath(); g.moveTo(X(48), 172); g.bezierCurveTo(X(70), 214, X(140), 238, X(300), 240); g.bezierCurveTo(X(460), 238, X(530), 214, X(552), 172); g.stroke();
+  g.setLineDash([]);
+  g.restore();
+  brimPath(); stroke();
+  g.beginPath(); brimTop(); stroke(5);
+  // the tag: a small cream paper tag tied to the band on the right side (front) / left side (back), hanging over the brim
+  {
+    const ax = X(438), ay = 190;                       // where the string is tied
+    const tx = X(476), ty = 262;                       // tag centre
+    g.strokeStyle = INK; g.lineWidth = 2.5; g.beginPath(); g.moveTo(ax, ay); g.quadraticCurveTo(X(462), 222, tx, ty - 24); g.stroke();
+    g.save(); g.translate(tx, ty); g.rotate(back ? 0.22 : -0.22);
+    g.beginPath(); g.moveTo(-17, -22); g.lineTo(17, -22); g.lineTo(17, 24); g.lineTo(-17, 24); g.lineTo(-17, -8); g.closePath();
+    g.beginPath(); g.moveTo(-9, -30); g.lineTo(9, -30); g.lineTo(17, -20); g.lineTo(17, 24); g.lineTo(-17, 24); g.lineTo(-17, -20); g.closePath();
+    g.fillStyle = "#F4E7C6"; g.fill(); stroke(3);
+    g.fillStyle = INK; g.beginPath(); g.arc(0, -20, 3.2, 0, 7); g.fill();                             // string hole
+    g.fillStyle = "#C8503A"; g.fillRect(-12, -11, 24, 5);                                            // red stripe
+    g.fillStyle = INK; g.font = "bold 15px Arial, sans-serif"; g.textAlign = "center"; g.fillText("7½", 0, 15);
+    g.restore();
+  }
+  if (v === "preview") {
+    const im = new Image(); im.onload = () => {};
+  }
+}
+document.title = "done";
+</script></body></html>

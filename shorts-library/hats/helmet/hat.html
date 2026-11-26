@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html><head><style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body><canvas id="c" width="1200" height="2000"></canvas>
+<script>
+// Army helmet (Vietnam tunnels video, 2026-11-12): a round steel helmet in a leaf-camo cloth cover, an elastic band
+// with a small bottle tucked in, chin straps hanging loose. Drawn on the 600x1000 library grid at 2x (1200x2000).
+// Fits every head on the library grid (Arian, Max, the extras): it covers the head down to just above the brows.
+// ?v=front | back | mask
+const v = (location.search.match(/v=(\w+)/) || [, "front"])[1];
+const S = 2, c = document.getElementById("c"), g = c.getContext("2d"); g.scale(S, S);
+const INK = "#1a1020", LW = 9;
+const back = v === "back", X = (x) => (back ? 600 - x : x);
+const BASE = "#6E7F3A", LIGHT = "#8FA14C", DARK = "#4C5A26";
+const stroke = (w = LW, col = INK) => { g.lineWidth = w; g.strokeStyle = col; g.lineJoin = "round"; g.lineCap = "round"; g.stroke(); };
+const fill = (col) => { g.fillStyle = col; g.fill(); };
+function dome() { g.beginPath(); g.moveTo(66, 236); g.bezierCurveTo(60, 120, 170, 40, 300, 40); g.bezierCurveTo(430, 40, 540, 120, 534, 236); g.closePath(); }
+function rim() { g.beginPath(); g.moveTo(52, 230); g.quadraticCurveTo(300, 262, 548, 230); g.lineTo(552, 244); g.quadraticCurveTo(300, 280, 48, 244); g.closePath(); }
+let seed = 11; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+if (v === "mask") {
+  g.fillStyle = "#000"; g.beginPath(); g.moveTo(0, 0); g.lineTo(600, 0); g.lineTo(600, 232); g.quadraticCurveTo(300, 262, 0, 232); g.closePath(); g.fill();
+} else {
+  // chin straps first (they hang below the rim, over the sides of the head)
+  for (const s of [-1, 1]) {
+    const x0 = 300 + s * 196;
+    g.beginPath(); g.moveTo(x0, 244); g.quadraticCurveTo(x0 + s * 18, 300, x0 + s * 8, 352);
+    g.lineWidth = 17; g.strokeStyle = INK; g.lineCap = "round"; g.stroke(); g.lineWidth = 11; g.strokeStyle = "#5E6A30"; g.stroke();
+    if (s === (back ? -1 : 1)) { g.beginPath(); g.roundRect(x0 + s * 8 - 9, 330, 18, 22, 3); fill("#8C8C80"); stroke(3); }
+  }
+  dome(); fill(BASE);
+  g.save(); dome(); g.clip();
+  // leaf camo: blobs of three colours
+  const cols = ["#4A6A2A", "#6B4A2A", "#9AAE54", "#3B5222"];
+  for (let i = 0; i < 70; i++) {
+    const x = 50 + rnd() * 500, y = 30 + rnd() * 220, r = 10 + rnd() * 22, a = rnd() * 3;
+    g.fillStyle = cols[i % 4]; g.beginPath();
+    for (let k = 0; k < 7; k++) { const t = (k / 7) * Math.PI * 2, rr = r * (0.55 + 0.45 * Math.sin(t * 3 + a)); g.lineTo(X(x) + Math.cos(t + a) * rr * 1.3, y + Math.sin(t + a) * rr * 0.8); }
+    g.closePath(); g.fill();
+  }
+  // round steel shape: light upper left, shade right and bottom
+  const sh = g.createRadialGradient(X(210), 90, 20, 300, 170, 330);
+  sh.addColorStop(0, "rgba(255,255,220,0.30)"); sh.addColorStop(0.45, "rgba(255,255,220,0)"); sh.addColorStop(0.8, "rgba(20,26,8,0.25)"); sh.addColorStop(1, "rgba(20,26,8,0.5)");
+  g.fillStyle = sh; g.fillRect(0, 0, 600, 300);
+  // cover seams
+  g.strokeStyle = "rgba(20,26,8,0.45)"; g.lineWidth = 3; g.setLineDash([6, 5]);
+  g.beginPath(); g.moveTo(300, 42); g.quadraticCurveTo(X(290), 140, 300, 232); g.stroke(); g.setLineDash([]);
+  // elastic band
+  g.beginPath(); g.moveTo(40, 168); g.quadraticCurveTo(300, 196, 560, 168); g.lineTo(560, 194); g.quadraticCurveTo(300, 222, 40, 194); g.closePath(); fill("#3E4426");
+  g.beginPath(); g.moveTo(40, 172); g.quadraticCurveTo(300, 200, 560, 172); stroke(2, "rgba(255,255,220,0.25)");
+  g.restore();
+  g.beginPath(); g.moveTo(66, 168); g.quadraticCurveTo(300, 196, 534, 168); stroke(3.5); g.beginPath(); g.moveTo(66, 196); g.quadraticCurveTo(300, 224, 534, 196); stroke(3.5);
+  if (!back) {
+    // a small bottle tucked into the band (on the viewer's left)
+    g.save(); g.translate(176, 166); g.rotate(-0.12);
+    g.beginPath(); g.roundRect(-13, -40, 26, 58, 6); fill("#2E3A2A"); stroke(4);
+    g.beginPath(); g.roundRect(-8, -52, 16, 14, 3); fill("#C9C6B8"); stroke(3.5);
+    g.beginPath(); g.roundRect(-9, -26, 18, 18, 2); fill("#E6DFB4"); stroke(2.5);
+    g.beginPath(); g.moveTo(-8, -34); g.lineTo(-8, 10); stroke(3, "rgba(255,255,255,0.35)");
+    g.restore();
+    g.beginPath(); g.moveTo(150, 176); g.quadraticCurveTo(176, 180, 204, 178); stroke(10, "#3E4426"); // band over the bottle
+  }
+  dome(); stroke();
+  // the steel rim (slightly flared)
+  rim(); const rg = g.createLinearGradient(0, 228, 0, 262); rg.addColorStop(0, "#5E6E2E"); rg.addColorStop(1, "#3C4718"); g.fillStyle = rg; g.fill(); stroke(7);
+  g.beginPath(); g.moveTo(X(90), 238); g.quadraticCurveTo(X(200), 252, X(290), 254); stroke(3, "rgba(255,255,220,0.4)");
+}
+document.title = "done";
+</script></body></html>

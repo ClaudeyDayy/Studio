@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html><head><style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body><canvas id="c" width="1200" height="2000"></canvas>
+<script>
+// General's peaked cap (Vietnam tunnels video, 2026-11-12): army-green crown, gold badge, three silver stars on the
+// band, gold chin cord, shiny black visor with gold leaf embroidery. Same shape as the police cap.
+// 600x1000 library grid at 2x (1200x2000). ?v=front | back | mask
+const v = (location.search.match(/v=(\w+)/) || [, "front"])[1];
+const S = 2, c = document.getElementById("c"), g = c.getContext("2d"); g.scale(S, S);
+const INK = "#1a1020";
+const back = v === "back", X = (x) => (back ? 600 - x : x);
+const GOLD = "#F2B921", GOLD_L = "#FFE27A", GOLD_D = "#B97E0C";
+const stroke = (w = 3, col = INK) => { g.lineWidth = w; g.strokeStyle = col; g.lineJoin = "round"; g.lineCap = "round"; g.stroke(); };
+const fill = (col) => { g.fillStyle = col; g.fill(); };
+function crown() { g.beginPath(); g.moveTo(92, 236); g.bezierCurveTo(70, 150, 150, 70, 300, 64); g.bezierCurveTo(450, 70, 530, 150, 508, 236); g.closePath(); }
+function brim() { g.beginPath(); g.moveTo(140, 236); g.quadraticCurveTo(300, 226, 460, 236); g.quadraticCurveTo(470, 270, 300, 282); g.quadraticCurveTo(130, 270, 140, 236); g.closePath(); }
+function star(cx, cy, r1, r2) { g.beginPath(); for (let i = 0; i < 10; i++) { const r = i % 2 ? r2 : r1, a = -Math.PI / 2 + (i * Math.PI) / 5; g.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); } g.closePath(); }
+if (v === "mask") {
+  g.fillStyle = "#000"; g.beginPath(); g.moveTo(0, 0); g.lineTo(600, 0); g.lineTo(600, 236); g.lineTo(0, 236); g.closePath(); g.fill();
+} else {
+  crown();
+  const cg = g.createRadialGradient(X(220), 100, 20, 300, 200, 300);
+  cg.addColorStop(0, "#6F8A4A"); cg.addColorStop(0.6, "#4F6634"); cg.addColorStop(1, "#3A4C26");
+  g.fillStyle = cg; g.fill();
+  g.save(); crown(); g.clip();
+  g.fillStyle = "rgba(15,22,8,0.3)"; g.beginPath(); g.ellipse(X(500), 170, 110, 160, 0, 0, 7); g.fill();
+  g.fillStyle = "rgba(255,255,230,0.14)"; g.beginPath(); g.ellipse(X(180), 120, 24, 50, 0.7 * (back ? 1 : -1), 0, 7); g.fill();
+  // dark band
+  g.fillStyle = "#2E3A20"; g.fillRect(60, 186, 480, 52);
+  g.fillStyle = "rgba(255,255,230,0.08)"; g.fillRect(60, 188, 480, 6);
+  g.restore();
+  g.save(); crown(); g.clip(); g.beginPath(); g.moveTo(60, 186); g.lineTo(540, 186); stroke(4); g.restore();
+  crown(); stroke(7);
+  // gold chin cord
+  g.beginPath(); g.moveTo(110, 228); g.quadraticCurveTo(300, 238, 490, 228); stroke(9);
+  g.beginPath(); g.moveTo(110, 228); g.quadraticCurveTo(300, 238, 490, 228); stroke(5, GOLD);
+  g.setLineDash([3, 5]); g.beginPath(); g.moveTo(110, 227); g.quadraticCurveTo(300, 237, 490, 227); stroke(1.6, GOLD_L); g.setLineDash([]);
+  if (!back) {
+    for (const x of [116, 484]) { g.beginPath(); g.arc(x, 228, 6, 0, 7); fill(GOLD); stroke(2); }
+    // three silver stars on the band
+    for (const x of [252, 300, 348]) { star(x, 210, 15, 6.5); const sg = g.createLinearGradient(x - 12, 196, x + 12, 224); sg.addColorStop(0, "#FFFFFF"); sg.addColorStop(0.5, "#D4D8E2"); sg.addColorStop(1, "#8E94A6"); g.fillStyle = sg; g.fill(); stroke(2.5); }
+    // gold badge on the crown: wings round a shield with a star
+    g.save(); g.translate(300, 128);
+    for (const s of [-1, 1]) {
+      g.beginPath(); g.moveTo(s * 16, -6); g.bezierCurveTo(s * 50, -30, s * 74, -22, s * 84, -6); g.bezierCurveTo(s * 66, -4, s * 70, 8, s * 52, 10); g.bezierCurveTo(s * 40, 14, s * 28, 14, s * 16, 12); g.closePath();
+      const wg = g.createLinearGradient(-80, -30, 80, 20); wg.addColorStop(0, GOLD_L); wg.addColorStop(0.5, GOLD); wg.addColorStop(1, GOLD_D); g.fillStyle = wg; g.fill(); stroke(3);
+      for (const k of [0, 1, 2]) { g.beginPath(); g.moveTo(s * (30 + k * 16), -2 - k * 4); g.lineTo(s * (40 + k * 16), 8 - k * 2); stroke(2, GOLD_D); }
+    }
+    g.beginPath(); g.moveTo(-20, -24); g.lineTo(20, -24); g.lineTo(18, 10); g.quadraticCurveTo(0, 26, -18, 10); g.closePath();
+    const bg = g.createLinearGradient(-20, -24, 20, 26); bg.addColorStop(0, GOLD_L); bg.addColorStop(0.5, GOLD); bg.addColorStop(1, GOLD_D); g.fillStyle = bg; g.fill(); stroke(3);
+    star(0, -2, 10, 4.2); fill("#FFFFFF"); stroke(1.8);
+    g.restore();
+  }
+  // shiny black visor with gold leaf embroidery
+  if (!back) {
+    brim(); const vg = g.createLinearGradient(0, 228, 0, 282); vg.addColorStop(0, "#3A3550"); vg.addColorStop(0.5, "#16131F"); vg.addColorStop(1, "#0A0810"); g.fillStyle = vg; g.fill(); stroke(6);
+    g.save(); brim(); g.clip();
+    for (let i = 0; i < 13; i++) {
+      const t = i / 12, x = 158 + t * 284, y = 256 + 12 * Math.sin(t * Math.PI);
+      g.save(); g.translate(x, y); g.rotate((t - 0.5) * 0.5 + (i % 2 ? 0.5 : -0.5));
+      g.beginPath(); g.ellipse(0, 0, 10, 4.5, 0, 0, 7); fill(i % 2 ? GOLD : GOLD_L); stroke(1.4, GOLD_D); g.restore();
+    }
+    g.beginPath(); g.ellipse(X(240), 242, 70, 3.5, 0, Math.PI * 1.05, Math.PI * 1.95); stroke(2.5, "rgba(255,255,255,0.45)");
+    g.restore();
+  } else {
+    g.beginPath(); g.ellipse(300, 238, 214, 10, 0, 0, 7); fill("#0E0C14"); stroke(5);
+  }
+}
+document.title = "done";
+</script></body></html>

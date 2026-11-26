@@ -1,0 +1,1 @@
+2026-11-11T06:57:56.745Z  [15,48,100,150]  4 frames in 0.0 min | first frame 1.2 s | then 0.18 s/frame | GPU ANGLE (AMD, AMD Radeon HD 6800 Series (0x00006738) Direct3D11 vs_5_0 ps_5_0, D3D11)

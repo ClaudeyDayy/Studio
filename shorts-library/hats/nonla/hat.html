@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html><head><style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body><canvas id="c" width="1200" height="2000"></canvas>
+<script>
+// Conical straw hat ("non la", Vietnam tunnels video, 2026-11-12): pale straw, rings and ribs, a dark rim. No chin ribbon:
+// it stayed put while the drawn face slides sideways in side views and looked like a second head outline. It looks the same from every side, so it suits the always-flat 2D head.
+// 600x1000 library grid at 2x (1200x2000). Fits every head on the library grid. ?v=front | back | mask
+const v = (location.search.match(/v=(\w+)/) || [, "front"])[1];
+const S = 2, c = document.getElementById("c"), g = c.getContext("2d"); g.scale(S, S);
+const INK = "#1a1020";
+const back = v === "back", X = (x) => (back ? 600 - x : x);
+const AX = 300, AY = 12, RY0 = 204, RX = 296, RYY = 26;      // apex, rim centre height, rim half width / half height
+const stroke = (w = 3, col = INK) => { g.lineWidth = w; g.strokeStyle = col; g.lineJoin = "round"; g.lineCap = "round"; g.stroke(); };
+const fill = (col) => { g.fillStyle = col; g.fill(); };
+function cone() { g.beginPath(); g.moveTo(AX, AY); g.lineTo(AX + RX, RY0); g.ellipse(AX, RY0, RX, RYY, 0, 0, Math.PI); g.lineTo(AX, AY); g.closePath(); }
+if (v === "mask") {
+  g.fillStyle = "#000"; g.beginPath(); g.moveTo(0, 0); g.lineTo(600, 0); g.lineTo(600, RY0); g.ellipse(AX, RY0, RX + 4, RYY, 0, 0, Math.PI); g.lineTo(0, RY0); g.closePath(); g.fill();
+} else {
+  cone();
+  const sg = g.createLinearGradient(X(40), 40, X(560), 220);
+  sg.addColorStop(0, "#F8E8B4"); sg.addColorStop(0.45, "#E8CF8A"); sg.addColorStop(1, "#BC9A55");
+  g.fillStyle = sg; g.fill();
+  g.save(); cone(); g.clip();
+  // ribs from the apex to the rim
+  for (let i = 1; i < 18; i++) { const t = i / 18, a = Math.PI - t * Math.PI, x = AX + Math.cos(a) * RX, y = RY0 + Math.sin(a) * RYY;
+    g.beginPath(); g.moveTo(AX, AY); g.lineTo(x, y); stroke(1.4, "rgba(120,86,30,0.35)"); }
+  // rings parallel to the rim
+  for (const s of [0.22, 0.38, 0.53, 0.67, 0.8, 0.91]) {
+    const cy = AY + (RY0 - AY) * s;
+    g.beginPath(); g.ellipse(AX, cy, RX * s, RYY * s, 0, 0.02, Math.PI - 0.02); stroke(2.6, "rgba(120,86,30,0.5)");
+    g.beginPath(); g.ellipse(AX, cy - 2, RX * s, RYY * s, 0, 0.3, Math.PI - 0.3); stroke(1.4, "rgba(255,248,220,0.5)");
+  }
+  // soft shade on the far side, shine near the top left
+  g.fillStyle = "rgba(90,60,20,0.18)"; g.beginPath(); g.moveTo(AX, AY); g.lineTo(X(600), RY0 + 30); g.lineTo(X(420), RY0 + 30); g.closePath(); g.fill();
+  g.fillStyle = "rgba(255,255,240,0.35)"; g.beginPath(); g.moveTo(AX - 4, AY + 18); g.lineTo(X(170), 150); g.lineTo(X(200), 156); g.closePath(); g.fill();
+  g.restore();
+  // dark rim band
+  g.beginPath(); g.ellipse(AX, RY0, RX, RYY, 0, 0, Math.PI); g.lineWidth = 9; g.strokeStyle = "#8A6A32"; g.stroke();
+  cone(); stroke(8);
+  g.beginPath(); g.arc(AX, AY + 4, 5, 0, 7); fill("#8A6A32"); stroke(2.5);
+}
+document.title = "done";
+</script></body></html>

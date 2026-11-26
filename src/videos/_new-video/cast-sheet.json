@@ -1,0 +1,7 @@
+{
+  "look": "3d",
+  "scenes": [
+    { "character": "arian", "outfit": "luckytee", "faces": ["neutral", "smug", "shock", "grin"] },
+    { "character": "max", "outfit": "suit", "faces": ["neutral", "smug", "shock", "grin"] }
+  ]
+}

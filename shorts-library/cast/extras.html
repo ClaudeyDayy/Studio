@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html><head><style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body><canvas id="c" width="600" height="1000"></canvas>
+<script>
+// Extra people (background cast; minh, minh2, minh3 added 2026-11-12 for the Vietnam tunnels video), drawn on the 600x1000 library grid in the library style:
+// round head x 95-505, y 96-495 (same silhouette as Arian, so Arian-fitted hats fit), thick ink outline, lidded eyes.
+//   extras.html?c=tina|cop|nora|omar|minh|minh2|minh3&v=head_neutral|head_smug|head_shock|head_grin|head_back|preview
+const q = (k, d) => (location.search.match(new RegExp(k + "=(\\w+)")) || [, d])[1];
+const who = q("c", "tina"), v = q("v", "head_neutral");
+const c = document.getElementById("c"), g = c.getContext("2d");
+const INK = "#120C14";
+const CX = 300, CY = 297, RX = 200, RY = 194;
+const stroke = (w = 9, col = INK) => { g.lineWidth = w; g.strokeStyle = col; g.lineJoin = "round"; g.lineCap = "round"; g.stroke(); };
+const fill = (col) => { g.fillStyle = col; g.fill(); };
+const headPath = () => { g.beginPath(); g.ellipse(CX, CY, RX, RY, 0, 0, 7); };
+const line = (a, b, w, col = INK) => { g.beginPath(); g.moveTo(...a); g.lineTo(...b); stroke(w, col); };
+const qcurve = (a, cq, b, w, col = INK) => { g.beginPath(); g.moveTo(...a); g.quadraticCurveTo(...cq, ...b); stroke(w, col); };
+
+const P = {
+  tina: { skin: "#F3C9A5", hair: "#C2502E", hairL: "#E8804A", lashes: true },
+  cop:  { skin: "#FEF9F6", hair: "#8A5632", hairL: "#B07A4A", shades: true },
+  nora: { skin: "#FBE6D2", hair: "#F2C24C", hairL: "#FFE08A", lashes: true },
+  omar: { skin: "#B9794C", hair: "#1E1A22", hairL: "#3A3442", beard: true },
+  minh:  { skin: "#F2C8A4", hair: "#1B1820", hairL: "#45404F" },
+  minh2: { skin: "#B9794C", hair: "#1B1820", hairL: "#45404F" },
+  minh3: { skin: "#FAE6D2", hair: "#1B1820", hairL: "#45404F", lashes: true },
+}[who];
+
+// ---------- hair (front) ----------
+function hairFront() {
+  const H = P.hair, HL = P.hairL;
+  if (who === "tina") {          // bun on top + side-swept fringe + small side locks
+    g.beginPath(); g.ellipse(300, 96, 62, 52, 0, 0, 7); fill(H); stroke(9);
+    qcurve([270, 80], [300, 60], [330, 84], 4, HL); qcurve([262, 104], [300, 86], [338, 108], 4, HL);
+    g.save(); headPath(); g.clip();
+    g.beginPath(); g.moveTo(60, 330); g.lineTo(60, 60); g.lineTo(540, 60); g.lineTo(540, 330);
+    g.quadraticCurveTo(500, 250, 470, 232); g.quadraticCurveTo(400, 250, 250, 196); g.quadraticCurveTo(170, 214, 130, 262); g.quadraticCurveTo(110, 290, 60, 330); g.closePath(); fill(H); stroke(8);
+    qcurve([180, 150], [300, 110], [430, 170], 4, HL); qcurve([170, 190], [240, 160], [300, 168], 4, HL);
+    g.restore();
+  } else if (who === "cop") {    // short hair: only the sides show under the hat
+    g.save(); headPath(); g.clip();
+    g.beginPath(); g.moveTo(60, 340); g.lineTo(60, 60); g.lineTo(540, 60); g.lineTo(540, 340);
+    g.lineTo(470, 300); g.quadraticCurveTo(468, 250, 440, 226); g.quadraticCurveTo(300, 190, 160, 226); g.quadraticCurveTo(132, 250, 130, 300); g.closePath(); fill(H); stroke(8);
+    g.restore();
+  } else if (who === "nora") {   // long bob: curtain fringe, hair down both sides past the chin
+    g.beginPath(); g.moveTo(96, 300); g.quadraticCurveTo(80, 420, 120, 500); g.quadraticCurveTo(150, 520, 176, 500); g.quadraticCurveTo(150, 420, 150, 300); g.closePath(); fill(H); stroke(9);
+    g.beginPath(); g.moveTo(504, 300); g.quadraticCurveTo(520, 420, 480, 500); g.quadraticCurveTo(450, 520, 424, 500); g.quadraticCurveTo(450, 420, 450, 300); g.closePath(); fill(H); stroke(9);
+    g.save(); g.beginPath(); g.ellipse(CX, CY, RX + 6, RY + 6, 0, 0, 7); g.clip();
+    g.beginPath(); g.moveTo(60, 420); g.lineTo(60, 50); g.lineTo(540, 50); g.lineTo(540, 420);
+    g.quadraticCurveTo(470, 380, 452, 300); g.quadraticCurveTo(420, 236, 300, 196); g.quadraticCurveTo(180, 236, 148, 300); g.quadraticCurveTo(130, 380, 60, 420); g.closePath(); fill(H); stroke(8);
+    qcurve([300, 110], [300, 150], [300, 196], 5, "rgba(150,100,10,0.7)");
+    qcurve([200, 140], [150, 200], [128, 300], 4, HL); qcurve([400, 140], [450, 200], [472, 300], 4, HL); qcurve([250, 120], [200, 160], [170, 240], 4, HL); qcurve([350, 120], [400, 160], [430, 240], 4, HL);
+    g.restore();
+    g.beginPath(); g.ellipse(CX, CY - 2, RX + 2, RY + 2, 0, Math.PI * 1.02, Math.PI * 1.98); stroke(9);
+
+  } else if (who === "minh") {   // straight black hair: side part, a straight fringe with a few pointed ends
+    g.save(); headPath(); g.clip();
+    g.beginPath(); g.moveTo(60, 330); g.lineTo(60, 60); g.lineTo(540, 60); g.lineTo(540, 330);
+    g.quadraticCurveTo(486, 300, 472, 262);
+    // a straight-cut fringe, slightly arched, with soft shallow dips (no saw teeth)
+    const tips = [[440, 238], [404, 230], [372, 238], [338, 226], [304, 234], [270, 224], [236, 232], [204, 226], [174, 236]];
+    let px = 472, py = 262;
+    for (const [x, y] of tips) { g.quadraticCurveTo((px + x) / 2, Math.max(py, y) + 9, x, y); px = x; py = y; }
+    g.quadraticCurveTo(150, 248, 140, 276); g.quadraticCurveTo(122, 304, 60, 330); g.closePath(); fill(P.hair); stroke(8);
+    for (const [a, b] of [[[232, 110], [226, 210]], [[290, 104], [296, 210]], [[350, 108], [360, 214]], [[410, 124], [420, 222]], [[178, 140], [176, 214]], [[462, 170], [466, 234]]]) qcurve(a, [(a[0] + b[0]) / 2 + 4, (a[1] + b[1]) / 2], b, 5, P.hairL);
+    qcurve([212, 100], [226, 150], [236, 222], 6, "rgba(255,255,255,0.18)");
+    g.restore();
+  } else if (who === "minh2") {  // short straight crew cut, high hairline, a few spiky ends on top
+    g.save(); headPath(); g.clip();
+    g.beginPath(); g.moveTo(60, 300); g.lineTo(60, 60); g.lineTo(540, 60); g.lineTo(540, 300);
+    g.lineTo(488, 270); g.quadraticCurveTo(472, 214, 432, 200); g.quadraticCurveTo(300, 178, 168, 200); g.quadraticCurveTo(128, 214, 112, 270); g.closePath(); fill(P.hair); stroke(8);
+    for (const x of [190, 240, 290, 340, 390, 430]) line([x, 128 + Math.abs(x - 310) * 0.25], [x + 6, 176 + Math.abs(x - 310) * 0.12], 4, P.hairL);
+    g.restore();
+  } else if (who === "minh3") {  // straight black hair, centre part, pulled back into a low bun (the bun shows from behind)
+    g.save(); headPath(); g.clip();
+    g.beginPath(); g.moveTo(60, 370); g.lineTo(60, 60); g.lineTo(540, 60); g.lineTo(540, 370);
+    g.quadraticCurveTo(486, 330, 468, 262); g.quadraticCurveTo(424, 194, 300, 198); g.quadraticCurveTo(176, 194, 132, 262); g.quadraticCurveTo(114, 330, 60, 370); g.closePath(); fill(P.hair); stroke(8);
+    qcurve([300, 104], [298, 150], [300, 198], 5, "#08070A");
+    for (const s2 of [-1, 1]) { qcurve([300 + s2 * 40, 112], [300 + s2 * 120, 140], [300 + s2 * 158, 250], 4, P.hairL); qcurve([300 + s2 * 80, 104], [300 + s2 * 160, 150], [300 + s2 * 178, 300], 4, P.hairL); }
+    g.restore();
+  } else if (who === "omar") {   // bald: a shine on the scalp; the beard is drawn with the face
+    qcurve([200, 150], [250, 118], [310, 116], 7, "rgba(255,255,255,0.35)");
+  }
+}
+// ---------- hair (back) ----------
+function hairBack() {
+  const H = P.hair, HL = P.hairL;
+  if (who === "minh2") {
+    g.save(); headPath(); g.clip();
+    g.beginPath(); g.moveTo(96, 330); g.quadraticCurveTo(300, 372, 504, 330); g.lineTo(540, 40); g.lineTo(60, 40); g.closePath(); fill(P.hair); stroke(8);
+    for (const x of [200, 250, 300, 350, 400]) line([x, 150], [x + (x - 300) * 0.1, 320], 4, P.hairL);
+    g.restore(); return;
+  }
+  if (who === "minh" || who === "minh3") {
+    g.save(); headPath(); g.clip();
+    g.beginPath(); g.rect(60, 60, 480, 340); fill(P.hair);
+    g.beginPath(); g.moveTo(96, 400);
+    for (const [x, y] of [[150, 432], [200, 418], [250, 440], [300, 424], [350, 442], [400, 420], [450, 434], [504, 400]]) g.lineTo(x, y);
+    g.lineTo(540, 40); g.lineTo(60, 40); g.closePath(); fill(P.hair); stroke(8);
+    for (const x of [170, 230, 300, 370, 430]) qcurve([x, 120], [x + (x - 300) * 0.15, 260], [x + (x - 300) * 0.18, 410], 4, P.hairL);
+    if (who === "minh3") qcurve([300, 104], [300, 200], [300, 330], 5, "#08070A");
+    g.restore();
+    if (who === "minh3") {           // the bun, with a red hair tie
+      g.beginPath(); g.ellipse(300, 372, 62, 50, 0, 0, 7); fill(P.hair); stroke(8);
+      for (const k of [-1, 0, 1]) qcurve([258, 360 + k * 18], [300, 340 + k * 18], [342, 360 + k * 18], 4, P.hairL);
+      g.beginPath(); g.roundRect(268, 318, 64, 14, 6); fill("#C8423A"); stroke(5);
+    }
+    return;
+  }
+  if (who === "omar") { qcurve([230, 440], [300, 458], [370, 440], 5, "rgba(60,30,10,0.45)"); qcurve([200, 150], [250, 118], [310, 116], 7, "rgba(255,255,255,0.3)"); return; }
+  if (who === "nora") {
+    g.beginPath(); g.moveTo(96, 300); g.quadraticCurveTo(80, 430, 124, 508); g.quadraticCurveTo(300, 548, 476, 508); g.quadraticCurveTo(520, 430, 504, 300); g.closePath(); fill(H); stroke(9);
+    headPath(); fill(H); stroke(9);
+    for (const x of [200, 250, 300, 350, 400]) qcurve([x, 130], [x + (x - 300) * 0.25, 320], [x + (x - 300) * 0.3, 510], 4, HL);
+    return;
+  }
+  if (who === "tina") { g.beginPath(); g.ellipse(300, 96, 62, 52, 0, 0, 7); fill(H); stroke(9); qcurve([262, 100], [300, 80], [338, 100], 4, HL); }
+  g.save(); headPath(); g.clip();
+  g.beginPath(); g.rect(60, 60, 480, who === "cop" ? 290 : 330); fill(H);
+  g.beginPath(); g.moveTo(96, who === "cop" ? 350 : 390); g.quadraticCurveTo(300, who === "cop" ? 400 : 450, 504, who === "cop" ? 350 : 390); g.lineTo(540, 40); g.lineTo(60, 40); g.closePath(); fill(H); stroke(8);
+  for (const x of [220, 300, 380]) qcurve([x, 130], [x + (x - 300) * 0.2, 250], [x + (x - 300) * 0.25, 370], 4, HL);
+  g.restore();
+}
+// ---------- faces ----------
+const EX = [243, 358];
+function lashes(x, y) { if (!P.lashes) return; const s = x < 300 ? -1 : 1; line([x + s * 38, y - 2], [x + s * 52, y - 12], 5); line([x + s * 30, y - 4], [x + s * 40, y - 18], 5); }
+function eyeLidded(x, y = 318, tilt = 0) {
+  g.save(); g.translate(x, y); g.rotate(tilt);
+  g.save(); g.beginPath(); g.rect(-40, 0, 80, 60); g.clip(); g.beginPath(); g.ellipse(0, 2, 21, 31, 0, 0, 7); fill(INK); g.restore();
+  line([-41, 0], [41, 0], 11); g.restore(); lashes(x, y);
+}
+function shades(drop) {       // aviator sunglasses; drop = slid down the nose (shock)
+  const y = 322 + drop;
+  for (const x of EX) {
+    g.beginPath(); g.moveTo(x - 50, y - 22); g.lineTo(x + 50, y - 22); g.quadraticCurveTo(x + 52, y + 30, x + 10, y + 40); g.quadraticCurveTo(x - 46, y + 36, x - 50, y - 22); g.closePath();
+    const gr = g.createLinearGradient(x - 50, y - 22, x + 40, y + 40); gr.addColorStop(0, "#3C4A78"); gr.addColorStop(0.5, "#141A30"); gr.addColorStop(1, "#0A0D1C"); g.fillStyle = gr; g.fill(); stroke(7);
+    g.save(); g.clip(); g.fillStyle = "rgba(255,255,255,0.55)"; g.beginPath(); g.moveTo(x - 36, y - 26); g.lineTo(x - 14, y - 26); g.lineTo(x - 40, y + 30); g.lineTo(x - 56, y + 30); g.closePath(); g.fill();
+    g.fillStyle = "rgba(255,255,255,0.25)"; g.beginPath(); g.moveTo(x - 4, y - 26); g.lineTo(x + 6, y - 26); g.lineTo(x - 22, y + 40); g.lineTo(x - 30, y + 40); g.closePath(); g.fill(); g.restore();
+  }
+  qcurve([EX[0] + 48, y - 16], [300, y - 30], [EX[1] - 48, y - 16], 7);
+  line([EX[0] - 50, y - 18], [104, y - 30 - drop * 0.6], 6); line([EX[1] + 50, y - 18], [496, y - 30 - drop * 0.6], 6);
+}
+function beard(open) {
+  g.save(); headPath(); g.clip();
+  g.beginPath(); g.moveTo(96, 330); g.quadraticCurveTo(150, 372, 214, 372); g.quadraticCurveTo(300, 340, 386, 372); g.quadraticCurveTo(450, 372, 504, 330); g.lineTo(520, 520); g.lineTo(80, 520); g.closePath(); fill(P.hair); stroke(7);
+  g.restore();
+}
+function face(kind) {
+  const brow = (x, dy, tilt, len = 30, w = 7) => { g.save(); g.translate(x, 278 + dy); g.rotate(tilt); line([-len, 0], [len, 0], w); g.restore(); };
+  const sh = P.shades;
+  if (kind === "neutral") {
+    if (sh) { shades(0); brow(EX[0], -20, 0.04, 34, 9); brow(EX[1], -20, -0.04, 34, 9); } else { for (const x of EX) eyeLidded(x); brow(EX[0], 0, 0); brow(EX[1], 0, 0); }
+    if (P.beard) beard();
+    line([280, 404], [322, 404], 8, P.beard ? "#F5E9E0" : INK);
+  } else if (kind === "smug") {
+    if (sh) { shades(0); brow(EX[0], -16, 0.22, 34, 9); brow(EX[1], -26, -0.1, 34, 9); } else { eyeLidded(EX[0], 320, 0.06); eyeLidded(EX[1], 318, -0.06); brow(EX[0], 4, 0.26); brow(EX[1], -6, -0.22); }
+    if (P.beard) beard();
+    qcurve([286, 406], [330, 416], [370, 382], 8, P.beard ? "#F5E9E0" : INK);
+  } else if (kind === "shock") {
+    if (sh) { shades(34); }
+    for (const x of EX) { if (sh) { g.beginPath(); g.ellipse(x, 300, 24, 26, 0, 0, 7); fill("#FFFFFF"); stroke(7); g.beginPath(); g.arc(x, 302, 7, 0, 7); fill(INK); } else { g.beginPath(); g.ellipse(x, 326, 15, 30, 0, 0, 7); fill(INK); lashes(x, 304); } }
+    qcurve([EX[0] - 34, sh ? 256 : 270], [EX[0], sh ? 230 : 244], [EX[0] + 30, sh ? 250 : 262], 7); qcurve([EX[1] - 30, sh ? 250 : 262], [EX[1], sh ? 230 : 244], [EX[1] + 34, sh ? 256 : 270], 7);
+    if (P.beard) beard();
+    g.beginPath(); g.ellipse(300, sh ? 432 : 424, 25, 31, 0, 0, 7); fill("#3A1220"); stroke(8);
+    g.save(); g.clip(); g.beginPath(); g.ellipse(300, (sh ? 432 : 424) + 26, 20, 16, 0, 0, 7); fill("#F28A9A"); g.restore();
+  } else if (kind === "grin") {
+    if (sh) { shades(0); brow(EX[0], -24, -0.1, 34, 9); brow(EX[1], -24, 0.1, 34, 9); } else for (const x of EX) { qcurve([x - 36, 330], [x, 290], [x + 36, 330], 10); lashes(x, 318); }
+    if (P.beard) beard();
+    g.beginPath(); g.moveTo(232, 386); g.quadraticCurveTo(300, 402, 368, 386); g.quadraticCurveTo(360, 462, 300, 462); g.quadraticCurveTo(240, 462, 232, 386); g.closePath(); fill("#FFFFFF"); stroke(8);
+    g.save(); g.clip(); line([228, 424], [372, 424], 5); g.restore();
+  }
+  if (who === "tina" && kind !== "back") for (const x of [104, 496]) { g.beginPath(); g.arc(x, 372, 9, 0, 7); fill("#F2B921"); stroke(4); }
+}
+function head(kind) {
+  if (kind === "back") { headPath(); fill(P.skin); stroke(10); hairBack(); if (who !== "nora") { headPath(); stroke(10); } return; }
+  if (who === "nora") { /* side hair behind the face */ }
+  headPath(); fill(P.skin);
+  hairFront();
+  if (who !== "nora") { headPath(); stroke(10); } else { g.beginPath(); g.ellipse(CX, CY, RX, RY, 0, 0.02, Math.PI - 0.02); stroke(10); }
+  face(kind);
+}
+if (v === "preview") {
+  g.fillStyle = "#C4C6D2"; g.fillRect(0, 0, 600, 1000);
+  g.save(); g.scale(0.5, 0.5); const ks = ["neutral", "smug", "shock", "grin", "back"];
+  ks.forEach((k, i) => { g.save(); g.translate((i % 2) * 600, Math.floor(i / 2) * 560 - 40); head(k); g.restore(); });
+  g.restore();
+} else head(v.replace("head_", ""));
+</script></body></html>

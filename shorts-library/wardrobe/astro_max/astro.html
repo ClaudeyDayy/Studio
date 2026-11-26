@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html><head><style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body><canvas id="c" width="600" height="1000"></canvas>
+<script>
+// Astronaut suit (needle video, 2026-11-16), on the 600x1000 library grid (torso x 205-396, y 461-727). Same torso shape as army.html.
+// ?v=torso_front | torso_back & c=blue | orange (the stripe colour: Max blue, Ava orange)
+// White padded suit, metal neck ring, coloured shoulder and waist bands, chest control box; life-support pack on the back.
+const q = new URLSearchParams(location.search);
+const v = q.get("v") || "torso_front", ACC = q.get("c") === "orange" ? ["#F07A2A", "#C85A16"] : ["#2F6FD8", "#1F4FA8"];
+const c = document.getElementById("c"), g = c.getContext("2d");
+const INK = "#1a1020", W = "#ECEEF2", W_D = "#C9CCD6", W_L = "#FFFFFF", GREY = "#8C909C", GREY_D = "#5E6270";
+const stroke = (w = 3, col = INK) => { g.lineWidth = w; g.strokeStyle = col; g.lineJoin = "round"; g.lineCap = "round"; g.stroke(); };
+const fill = (col) => { g.fillStyle = col; g.fill(); };
+function torso() {
+  g.beginPath(); g.moveTo(250, 461); g.lineTo(354, 461);
+  g.bezierCurveTo(380, 500, 397, 560, 396, 620); g.bezierCurveTo(397, 688, 362, 727, 301, 727);
+  g.bezierCurveTo(240, 727, 204, 688, 205, 620); g.bezierCurveTo(204, 560, 222, 500, 250, 461); g.closePath();
+}
+function cloth(back) {
+  torso();
+  const gr = g.createLinearGradient(205, 0, 396, 0);
+  gr.addColorStop(0, W_L); gr.addColorStop(0.3, W); gr.addColorStop(0.8, W); gr.addColorStop(1, W_D);
+  g.fillStyle = gr; g.fill();
+  g.save(); torso(); g.clip();
+  const X = (x) => (back ? 601 - x : x);
+  // padded quilting seams
+  g.strokeStyle = "rgba(90,96,120,0.35)"; g.lineWidth = 2; g.lineCap = "round";
+  for (const y of [545, 600]) { g.beginPath(); g.moveTo(200, y); g.quadraticCurveTo(300, y + 10, 400, y); g.stroke(); }
+  g.beginPath(); g.moveTo(X(240), 700); g.quadraticCurveTo(X(250), 715, X(270), 722); g.stroke();
+  g.beginPath(); g.moveTo(X(362), 700); g.quadraticCurveTo(X(352), 715, X(332), 722); g.stroke();
+  // shoulder bands
+  for (const s of [-1, 1]) {
+    g.beginPath(); g.moveTo(300 + s * 58, 456); g.quadraticCurveTo(300 + s * 82, 470, 300 + s * 98, 500);
+    g.lineTo(300 + s * 104, 520); g.quadraticCurveTo(300 + s * 80, 492, 300 + s * 50, 478); g.closePath(); fill(ACC[0]); stroke(2);
+  }
+  // waist band
+  g.beginPath(); g.moveTo(200, 640); g.quadraticCurveTo(300, 650, 400, 640); g.lineTo(400, 664); g.quadraticCurveTo(300, 674, 200, 664); g.closePath();
+  fill(ACC[0]); stroke(2.4);
+  g.beginPath(); g.moveTo(200, 660); g.quadraticCurveTo(300, 670, 400, 660); stroke(2, ACC[1]);
+  g.restore();
+}
+function ring() {   // metal neck ring the helmet clicks into
+  g.beginPath(); g.ellipse(300, 466, 62, 14, 0, 0, 7); fill("#B8BCC8"); stroke(2.6);
+  g.beginPath(); g.ellipse(300, 464, 52, 9, 0, 0, 7); stroke(1.6, "rgba(255,255,255,0.7)");
+}
+function front() {
+  cloth(false);
+  g.save(); torso(); g.clip();
+  // centre zip seam
+  g.beginPath(); g.moveTo(300, 480); g.lineTo(300, 640); stroke(1.6, "rgba(90,96,120,0.5)");
+  // chest control box
+  g.beginPath(); g.roundRect(262, 556, 76, 54, 7); fill(GREY); stroke(2.6);
+  g.beginPath(); g.roundRect(270, 563, 34, 20, 3); fill("#16324A"); stroke(1.6);
+  g.beginPath(); g.moveTo(274, 576); g.lineTo(282, 570); g.lineTo(290, 575); g.lineTo(299, 567); stroke(1.6, "#5CE0FF");
+  const btn = [["#E84848", 316, 570], ["#F4C430", 328, 570], ["#4CD964", 316, 584], [ACC[0], 328, 584]];
+  for (const [col, x, y] of btn) { g.beginPath(); g.arc(x, y, 4.2, 0, 7); fill(col); stroke(1.4); }
+  g.beginPath(); g.roundRect(270, 590, 60, 12, 3); fill(GREY_D); stroke(1.4);
+  // two hoses from the box to the sides
+  for (const s of [-1, 1]) { g.beginPath(); g.moveTo(300 + s * 38, 600); g.quadraticCurveTo(300 + s * 70, 620, 300 + s * 82, 645); stroke(9); g.beginPath(); g.moveTo(300 + s * 38, 600); g.quadraticCurveTo(300 + s * 70, 620, 300 + s * 82, 645); stroke(5, "#D8DBE4"); }
+  // small round mission patch (plain star, no text)
+  g.beginPath(); g.arc(246, 520, 12, 0, 7); fill(ACC[0]); stroke(1.8);
+  g.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, r = k % 2 ? 3 : 7.5; g.lineTo(246 + Math.cos(a) * r, 520 + Math.sin(a) * r); } g.closePath(); fill("#FFFFFF");
+  g.restore();
+  ring();
+}
+function backSide() {
+  cloth(true);
+  g.save(); torso(); g.clip();
+  // life-support pack
+  g.beginPath(); g.roundRect(236, 488, 130, 150, 14); fill("#DADDE6"); stroke(3);
+  g.beginPath(); g.roundRect(246, 498, 110, 30, 6); fill(ACC[0]); stroke(2);
+  for (let i = 0; i < 4; i++) { g.beginPath(); g.moveTo(258, 548 + i * 16); g.lineTo(344, 548 + i * 16); stroke(3, GREY_D); }
+  g.beginPath(); g.arc(274, 513, 5, 0, 7); fill("#FFFFFF"); stroke(1.4);
+  g.restore();
+  ring();
+}
+if (v === "torso_front") front(); else backSide();
+document.title = "done";
+</script></body></html>

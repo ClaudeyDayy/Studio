@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html><head><style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body><canvas id="c" width="600" height="1000"></canvas>
+<script>
+// Outfits drawn on the 600x1000 library grid (torso x 205-396, y 461-727), same way as wardrobe/police/police.html.
+//   outfits.html?o=suit|cardigan|teller|hoodie|dress&v=torso_front|torso_back|preview
+// Light from the upper left. The torso has no outer ink line (the engine adds the outline); details have ink lines.
+const q = (k, d) => (location.search.match(new RegExp(k + "=(\\w+)")) || [, d])[1];
+const o = q("o", "suit"), v = q("v", "torso_front");
+const c = document.getElementById("c"), g = c.getContext("2d");
+const INK = "#1a1020";
+const stroke = (w = 3, col = INK) => { g.lineWidth = w; g.strokeStyle = col; g.lineJoin = "round"; g.lineCap = "round"; g.stroke(); };
+const fill = (col) => { g.fillStyle = col; g.fill(); };
+function torso() {
+  g.beginPath(); g.moveTo(250, 461); g.lineTo(354, 461);
+  g.bezierCurveTo(380, 500, 397, 560, 396, 620); g.bezierCurveTo(397, 688, 362, 727, 301, 727);
+  g.bezierCurveTo(240, 727, 204, 688, 205, 620); g.bezierCurveTo(204, 560, 222, 500, 250, 461); g.closePath();
+}
+// base cloth with a left-lit gradient, right-side shade, belly shade. back mirrors the light.
+function cloth(l, m, d, back, shadeCol = "rgba(10,10,40,0.30)") {
+  torso();
+  const gr = g.createLinearGradient(205, 0, 396, 0);
+  if (back) { gr.addColorStop(0, d); gr.addColorStop(0.2, m); gr.addColorStop(0.7, m); gr.addColorStop(1, l); }
+  else { gr.addColorStop(0, l); gr.addColorStop(0.3, m); gr.addColorStop(0.8, m); gr.addColorStop(1, d); }
+  g.fillStyle = gr; g.fill();
+  g.save(); torso(); g.clip();
+  const X = (x) => (back ? 601 - x : x);
+  g.fillStyle = shadeCol; g.beginPath(); g.ellipse(X(398), 600, 30, 140, 0, 0, 7); g.fill();
+  g.fillStyle = "rgba(255,255,255,0.10)"; g.beginPath(); g.ellipse(X(214), 585, 10, 95, 0, 0, 7); g.fill();
+  g.fillStyle = shadeCol.replace(/[\d.]+\)$/, "0.16)"); g.beginPath(); g.ellipse(300, 727, 110, 40, 0, 0, 7); g.fill();
+  g.restore();
+}
+const clipT = (fn) => { g.save(); torso(); g.clip(); fn(); g.restore(); };
+const line = (pts, w = 3, col = INK) => { g.beginPath(); g.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) g.lineTo(pts[i], pts[i + 1]); stroke(w, col); };
+const curve = (a, cq, b, w = 3, col = INK) => { g.beginPath(); g.moveTo(...a); g.quadraticCurveTo(...cq, ...b); stroke(w, col); };
+const dot = (x, y, r, col, w = 2.5) => { g.beginPath(); g.arc(x, y, r, 0, 7); fill(col); if (w) stroke(w); };
+
+// ---------------- black suit (CEO): charcoal-navy jacket, white shirt, wine tie with a gold clip, pocket square ----------------
+function suit(back) {
+  const L = "#3A3550", M = "#272338", D = "#18152A";
+  cloth(L, M, D, back, "rgba(4,3,18,0.45)");
+  clipT(() => {
+    if (back) {
+      // collar band, centre seam, vent, shoulder seams
+      g.beginPath(); g.moveTo(244, 461); g.quadraticCurveTo(300, 486, 358, 461); g.lineTo(358, 455); g.lineTo(244, 455); g.closePath(); fill("#1D1930"); 
+      curve([246, 462], [300, 488], [356, 462], 3);
+      line([300, 482, 300, 727], 2.6, "rgba(8,6,24,0.8)");
+      line([300, 650, 300, 727], 4, "rgba(8,6,24,0.9)");
+      curve([228, 500], [248, 520], [246, 560], 2.2, "rgba(8,6,24,0.55)"); curve([374, 500], [354, 520], [356, 560], 2.2, "rgba(8,6,24,0.55)");
+      curve([250, 600], [262, 640], [256, 690], 2, "rgba(120,112,160,0.35)");
+      return;
+    }
+    // shirt V
+    g.beginPath(); g.moveTo(262, 461); g.lineTo(340, 461); g.lineTo(304, 590); g.lineTo(298, 590); g.closePath(); fill("#F7F5FB");
+    g.fillStyle = "rgba(60,50,110,0.18)"; g.beginPath(); g.moveTo(318, 461); g.lineTo(340, 461); g.lineTo(304, 590); g.closePath(); g.fill();
+    // collar points
+    g.beginPath(); g.moveTo(262, 461); g.lineTo(300, 461); g.lineTo(286, 496); g.closePath(); fill("#FFFFFF"); stroke(2.6);
+    g.beginPath(); g.moveTo(340, 461); g.lineTo(302, 461); g.lineTo(316, 496); g.closePath(); fill("#ECE9F5"); stroke(2.6);
+    // tie: knot + blade
+    g.beginPath(); g.moveTo(290, 468); g.lineTo(312, 468); g.lineTo(308, 492); g.lineTo(294, 492); g.closePath(); fill("#B3122B"); stroke(2.6);
+    g.beginPath(); g.moveTo(294, 492); g.lineTo(308, 492); g.lineTo(316, 575); g.lineTo(301, 596); g.lineTo(286, 575); g.closePath();
+    const tg = g.createLinearGradient(286, 0, 316, 0); tg.addColorStop(0, "#E0283F"); tg.addColorStop(0.55, "#C4162F"); tg.addColorStop(1, "#8E0C22"); g.fillStyle = tg; g.fill(); stroke(2.6);
+    for (let k = 0; k < 4; k++) line([290 + k * 0.5, 510 + k * 19, 312, 500 + k * 19], 1.6, "rgba(255,190,200,0.35)");
+    // gold tie clip
+    g.beginPath(); g.roundRect(287, 538, 30, 7, 3); fill("#F2B921"); stroke(2); line([290, 540, 312, 540], 1.5, "#FFE27A");
+    // lapels (lighter cloth, notch) over the shirt edges
+    const lap = (s) => {
+      const X = (x) => 301 + s * (x - 301);
+      g.beginPath(); g.moveTo(X(250), 461); g.lineTo(X(264), 461); g.lineTo(X(300), 596); g.lineTo(X(280), 560); g.lineTo(X(238), 536); g.lineTo(X(252), 520); g.lineTo(X(232), 500); g.closePath();
+      fill(s < 0 ? "#34304A" : "#2B2740"); stroke(2.8);
+      g.beginPath(); g.moveTo(X(252), 520); g.lineTo(X(268), 512); stroke(2.4);
+    };
+    lap(1); lap(-1);
+    // front closing line + 2 buttons
+    curve([300, 596], [296, 660], [306, 727], 2.8);
+    dot(306, 632, 5.5, "#11101C", 2); dot(307, 668, 5.5, "#11101C", 2);
+    g.fillStyle = "rgba(255,255,255,0.5)"; g.beginPath(); g.arc(304.5, 630.5, 1.6, 0, 7); g.fill(); g.beginPath(); g.arc(305.5, 666.5, 1.6, 0, 7); g.fill();
+    // chest pocket with a white pocket square (wearer's left = picture right)
+    line([338, 566, 372, 562], 2.6);
+    g.beginPath(); g.moveTo(342, 565); g.lineTo(347, 548); g.lineTo(354, 560); g.lineTo(360, 546); g.lineTo(368, 562); g.closePath(); fill("#FFFFFF"); stroke(2.2);
+    // side pockets (flaps) + soft folds + lit edge
+    line([222, 660, 262, 664], 2.6); line([342, 664, 382, 658], 2.6);
+    curve([232, 600], [240, 628], [258, 640], 2, "rgba(6,4,20,0.6)"); curve([370, 606], [362, 628], [346, 640], 2, "rgba(6,4,20,0.6)");
+    curve([214, 560], [209, 610], [216, 660], 3, "rgba(150,140,200,0.35)");
+  });
+}
+
+// ---------------- cardigan (old lady): violet knit cardigan, cream blouse with a lace collar, pearls, gold flower brooch ----------------
+function cardigan(back) {
+  const L = "#A77BE6", M = "#8A55D6", D = "#6336B0";
+  cloth(L, M, D, back, "rgba(40,10,90,0.32)");
+  clipT(() => {
+    // knit ribs (soft vertical lines) and the ribbed hem + cuffs band
+    g.strokeStyle = "rgba(60,24,130,0.22)"; g.lineWidth = 2;
+    for (let x = 214; x < 396; x += 13) { g.beginPath(); g.moveTo(x, 470); g.quadraticCurveTo(x - 2 + (x - 300) * 0.04, 600, x + (x - 300) * 0.02, 727); g.stroke(); }
+    g.fillStyle = "rgba(70,28,140,0.35)"; g.fillRect(200, 700, 200, 30);
+    g.strokeStyle = "rgba(40,12,100,0.5)"; g.lineWidth = 2; for (let x = 210; x < 396; x += 8) { g.beginPath(); g.moveTo(x, 701); g.lineTo(x, 727); g.stroke(); }
+    line([208, 700, 394, 700], 2.4, "rgba(40,12,100,0.7)");
+    if (back) { curve([246, 462], [300, 484], [356, 462], 3); g.beginPath(); g.moveTo(246, 461); g.quadraticCurveTo(300, 482, 356, 461); g.closePath(); fill("#FFF3DD"); curve([246, 462], [300, 484], [356, 462], 2.6); return; }
+    // blouse panel (cream) between the cardigan fronts
+    g.beginPath(); g.moveTo(266, 461); g.lineTo(336, 461); g.quadraticCurveTo(322, 560, 318, 727); g.lineTo(284, 727); g.quadraticCurveTo(280, 560, 266, 461); g.closePath(); fill("#FFF3DD");
+    g.fillStyle = "rgba(200,150,90,0.18)"; g.beginPath(); g.moveTo(312, 461); g.lineTo(336, 461); g.quadraticCurveTo(322, 560, 318, 727); g.lineTo(306, 727); g.closePath(); g.fill();
+    // small flower print on the blouse
+    for (const [x, y] of [[296, 560], [306, 610], [294, 655], [305, 700]]) { for (let k = 0; k < 5; k++) { const a = k * 1.257; g.beginPath(); g.arc(x + Math.cos(a) * 3.6, y + Math.sin(a) * 3.6, 2.6, 0, 7); fill("#F28AB8"); } g.beginPath(); g.arc(x, y, 2, 0, 7); fill("#F2B921"); }
+    // cardigan front edges (ribbed bands) + buttons on the wearer's right band
+    curve([266, 461], [280, 560], [284, 727], 3); curve([336, 461], [322, 560], [318, 727], 3);
+    curve([256, 461], [270, 560], [273, 727], 2, "rgba(40,12,100,0.55)"); curve([346, 461], [332, 560], [329, 727], 2, "rgba(40,12,100,0.55)");
+    for (const y of [540, 590, 640, 688]) { dot(326.5 - (y - 540) * 0.02, y, 5, "#FFE9B0", 2); }
+    // lace collar (scalloped, white) + pearl necklace
+    const scal = (s) => { const X = (x) => 301 + s * (x - 301); g.beginPath(); g.moveTo(X(301), 461); g.lineTo(X(252), 461); g.quadraticCurveTo(X(246), 486, X(258), 500);
+      for (let k = 0; k < 4; k++) { const x0 = 258 + k * 11, x1 = x0 + 11; g.quadraticCurveTo(X((x0 + x1) / 2), 514 + k * 2.5 + 8, X(x1), 502 + k * 2.5); }
+      g.lineTo(X(301), 478); g.closePath(); fill("#FFFFFF"); stroke(2.4); };
+    scal(1); scal(-1);
+    for (let k = -4; k <= 4; k++) { const x = 301 + k * 8.2, y = 497 + 14 * (1 - (k * k) / 16); dot(x, y, 4.3, "#FFFDF4", 1.6); g.fillStyle = "rgba(255,255,255,0.9)"; }
+    // gold flower brooch on the wearer's left chest (picture right)
+    const bx = 356, by = 560;
+    for (let k = 0; k < 6; k++) { const a = k * 1.047; g.beginPath(); g.ellipse(bx + Math.cos(a) * 9, by + Math.sin(a) * 9, 6.5, 4.6, a, 0, 7); fill("#F2B921"); stroke(1.8); }
+    dot(bx, by, 5, "#E0283F", 1.8); g.fillStyle = "rgba(255,255,255,0.8)"; g.beginPath(); g.arc(bx - 1.5, by - 1.5, 1.4, 0, 7); g.fill();
+    // pockets
+    g.beginPath(); g.roundRect(222, 640, 40, 34, 4); stroke(2.4, "rgba(40,12,100,0.8)"); g.beginPath(); g.roundRect(340, 640, 40, 34, 4); stroke(2.4, "rgba(40,12,100,0.8)");
+    line([222, 648, 262, 648], 2, "rgba(40,12,100,0.6)"); line([340, 648, 380, 648], 2, "rgba(40,12,100,0.6)");
+  });
+}
+
+// ---------------- bank teller uniform: teal blazer, white blouse, coral neck scarf, gold name tag ----------------
+function teller(back) {
+  const L = "#3FC0C8", M = "#16969F", D = "#0B6B78";
+  cloth(L, M, D, back, "rgba(0,40,60,0.32)");
+  clipT(() => {
+    if (back) { curve([246, 462], [300, 486], [356, 462], 3); line([300, 484, 300, 727], 2.4, "rgba(0,50,60,0.6)"); line([226, 690, 376, 690], 2.2, "rgba(0,50,60,0.5)"); return; }
+    g.beginPath(); g.moveTo(266, 461); g.lineTo(336, 461); g.lineTo(303, 580); g.lineTo(299, 580); g.closePath(); fill("#FFFFFF");
+    const lap = (s) => { const X = (x) => 301 + s * (x - 301); g.beginPath(); g.moveTo(X(250), 461); g.lineTo(X(266), 461); g.lineTo(X(300), 584); g.lineTo(X(276), 548); g.lineTo(X(236), 520); g.closePath(); fill(s < 0 ? "#2AAAB3" : "#1FA0A9"); stroke(2.8); };
+    lap(1); lap(-1);
+    curve([300, 584], [297, 650], [305, 727], 2.8); dot(305, 626, 5.5, "#F2B921", 2); dot(306, 664, 5.5, "#F2B921", 2);
+    // neck scarf (coral, knotted to one side)
+    g.beginPath(); g.moveTo(268, 462); g.quadraticCurveTo(300, 492, 334, 462); g.lineTo(336, 476); g.quadraticCurveTo(300, 508, 266, 476); g.closePath(); fill("#FF6B57"); stroke(2.6);
+    g.beginPath(); g.moveTo(316, 486); g.lineTo(336, 520); g.lineTo(322, 516); g.lineTo(318, 532); g.lineTo(306, 494); g.closePath(); fill("#F2503C"); stroke(2.4);
+    dot(312, 488, 6, "#FF8A78", 2.2);
+    // name tag (gold, wearer's left) with two lines
+    g.beginPath(); g.roundRect(336, 552, 40, 20, 4); fill("#FFE27A"); stroke(2.2); line([342, 559, 370, 559], 2, "#7A4F06"); line([342, 565, 362, 565], 1.6, "#B97E0C");
+    line([224, 664, 262, 667], 2.4); line([342, 667, 380, 662], 2.4);
+    curve([214, 560], [209, 610], [216, 660], 3, "rgba(200,255,255,0.3)");
+  });
+}
+
+// ---------------- hoodie (green): hood collar, drawstrings, kangaroo pocket ----------------
+function hoodie(back) {
+  const L = "#63D07A", M = "#34B054", D = "#1F8040";
+  cloth(L, M, D, back, "rgba(0,50,20,0.3)");
+  clipT(() => {
+    if (back) { g.beginPath(); g.moveTo(240, 461); g.quadraticCurveTo(300, 560, 362, 461); g.closePath(); fill("#2B9A49"); stroke(2.8); line([300, 510, 300, 520], 2.4); return; }
+    g.beginPath(); g.moveTo(244, 461); g.quadraticCurveTo(300, 540, 358, 461); g.lineTo(336, 461); g.quadraticCurveTo(300, 506, 266, 461); g.closePath(); fill("#2B9A49"); stroke(2.8);
+    g.beginPath(); g.moveTo(266, 461); g.quadraticCurveTo(300, 506, 336, 461); g.closePath(); fill("#F4F0E6");
+    line([286, 498, 282, 566], 3, "#F4F0E6"); line([316, 498, 320, 560], 3, "#F4F0E6"); dot(282, 568, 3.6, "#F4F0E6", 1.6); dot(320, 562, 3.6, "#F4F0E6", 1.6);
+    g.beginPath(); g.moveTo(244, 632); g.lineTo(358, 632); g.lineTo(376, 694); g.lineTo(226, 694); g.closePath(); g.fillStyle = "rgba(0,60,20,0.14)"; g.fill(); stroke(2.6, "rgba(10,60,30,0.85)");
+    line([212, 706, 390, 706], 2.4, "rgba(10,60,30,0.7)");
+  });
+}
+
+// ---------------- dress (coral) with a white round collar and a row of buttons ----------------
+function dress(back) {
+  const L = "#FF9B7A", M = "#F4673F", D = "#C4431F";
+  cloth(L, M, D, back, "rgba(90,10,0,0.28)");
+  clipT(() => {
+    if (back) { curve([246, 462], [300, 486], [356, 462], 3); line([300, 484, 300, 620], 2.4, "rgba(90,20,0,0.6)"); line([212, 640, 390, 640], 2.4, "rgba(90,20,0,0.55)"); return; }
+    const col = (s) => { const X = (x) => 301 + s * (x - 301); g.beginPath(); g.moveTo(X(301), 461); g.lineTo(X(252), 461); g.quadraticCurveTo(X(244), 500, X(272), 510); g.quadraticCurveTo(X(296), 506, X(301), 482); g.closePath(); fill("#FFFFFF"); stroke(2.6); };
+    col(1); col(-1);
+    for (const y of [536, 572, 608]) dot(301, y, 5, "#FFF3DD", 2);
+    line([210, 640, 392, 640], 2.6, "rgba(90,20,0,0.75)"); g.fillStyle = "rgba(120,20,0,0.12)"; g.fillRect(200, 640, 200, 100);
+    for (const x of [240, 270, 301, 332, 362]) curve([x, 644], [x + (x - 301) * 0.05, 690], [x + (x - 301) * 0.12, 727], 2, "rgba(90,20,0,0.4)");
+    // small dots print
+    g.fillStyle = "rgba(255,240,210,0.75)"; for (const [x, y] of [[236, 560], [262, 600], [342, 560], [366, 606], [330, 620], [244, 624]]) { g.beginPath(); g.arc(x, y, 3.2, 0, 7); g.fill(); }
+  });
+}
+
+// ---------------- lucky tee (casual): the blue tee with two dice printed on the chest ----------------
+function luckytee(back) {
+  const L = "#4A86F0", M = "#2F6FE0", D = "#2659B8";
+  cloth(L, M, D, back, "rgba(10,20,90,0.28)");
+  clipT(() => {
+    curve([268, 462], [300, 492], [334, 462], 3.2);                      // round neck
+    if (back) return;
+    const die = (cx, cy, s, rot, pips) => {
+      g.save(); g.translate(cx, cy); g.rotate(rot);
+      g.beginPath(); g.roundRect(-s + 3, -s + 4, s * 2, s * 2, s * 0.3); fill("rgba(10,20,90,0.35)");
+      g.beginPath(); g.roundRect(-s, -s, s * 2, s * 2, s * 0.3); fill("#FFFFFF"); stroke(3);
+      g.fillStyle = "#E0283F"; for (const [x, y] of pips) { g.beginPath(); g.arc(x * s * 0.52, y * s * 0.52, s * 0.17, 0, 7); g.fill(); }
+      g.restore();
+    };
+    die(280, 566, 25, -0.22, [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]]);
+    die(330, 598, 22, 0.3, [[-1, -1], [0, 0], [1, 1]]);
+    g.strokeStyle = "rgba(255,255,255,0.75)"; g.lineWidth = 3; g.lineCap = "round";
+    for (const [x, y, a] of [[246, 540, -2.3], [262, 614, 2.6], [362, 556, -0.6]]) { g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * 12, y + Math.sin(a) * 12); g.stroke(); }
+  });
+}
+const draw = { suit, cardigan, teller, hoodie, dress, luckytee }[o];
+if (v === "preview") { g.fillStyle = "#C4C6D2"; g.fillRect(0, 0, 600, 1000); draw(false); g.translate(0, 280); draw(true); }
+else draw(v === "torso_back");
+</script></body></html>

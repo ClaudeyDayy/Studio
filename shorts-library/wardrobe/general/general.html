@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html><head><style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body><canvas id="c" width="600" height="1000"></canvas>
+<script>
+// 1943 US Army general service uniform (wool tunic) (Wald bomber video, 2026-11-20), on the 600x1000 library grid (torso x 205-396, y 461-727).
+// ?v=torso_front | torso_back | preview          Light from the upper left. Same torso shape and ink as army.html / police.html.
+// Olive-drab wool tunic, open lapels over a khaki shirt and tie, four flap pockets, brass buttons, cloth belt with
+// brass buckle, silver stars on the shoulder straps, a small ribbon bar. Back: centre seam, belt.
+const v = (location.search.match(/v=(\w+)/) || [, "torso_front"])[1];
+const FLAT = /flat=1/.test(location.search);  // flat = no painted light (for the 3D version)
+const c = document.getElementById("c"), g = c.getContext("2d");
+const INK = "#1a1020";
+const LE = "#5E5530", LE_L = "#7A6F3E", LE_D = "#463F22", LE_DD = "#302A16";
+const SHIRT = "#C9AE72", TIE = "#8A7444", BRASS = "#E8B830", SILVER = "#F2F2F6";
+const stroke = (w = 3, col = INK) => { g.lineWidth = w; g.strokeStyle = col; g.lineJoin = "round"; g.lineCap = "round"; g.stroke(); };
+const fill = (col) => { g.fillStyle = col; g.fill(); };
+
+function torso() {
+  g.beginPath(); g.moveTo(250, 461); g.lineTo(354, 461);
+  g.bezierCurveTo(380, 500, 397, 560, 396, 620); g.bezierCurveTo(397, 688, 362, 727, 301, 727);
+  g.bezierCurveTo(240, 727, 204, 688, 205, 620); g.bezierCurveTo(204, 560, 222, 500, 250, 461); g.closePath();
+}
+function cloth(back) {
+  torso();
+  const gr = g.createLinearGradient(205, 0, 396, 0);
+  gr.addColorStop(0, LE_L); gr.addColorStop(0.3, LE); gr.addColorStop(0.8, LE); gr.addColorStop(1, LE_D);
+  g.fillStyle = FLAT ? LE : gr; g.fill();
+  g.save(); torso(); g.clip();
+  const L = back ? -1 : 1, X = (x) => (back ? 601 - x : x);
+  if (!FLAT) {
+  g.fillStyle = "rgba(26,22,8,0.35)"; g.beginPath(); g.ellipse(X(398), 600, 30, 140, 0, 0, 7); g.fill();
+  g.fillStyle = "rgba(255,250,215,0.12)"; g.beginPath(); g.ellipse(X(216), 580, 10, 95, 0.08 * L, 0, 7); g.fill();
+  }
+  // leather creases (a little shine on each)
+  g.strokeStyle = "rgba(26,22,8,0.5)"; g.lineWidth = 2.2; g.lineCap = "round";
+  const fold = (a, b, cx, cy) => { g.beginPath(); g.moveTo(X(a[0]), a[1]); g.quadraticCurveTo(X(cx), cy, X(b[0]), b[1]); g.stroke(); };
+  fold([230, 620], [254, 646], 238, 636); fold([372, 612], [350, 644], 364, 632); fold([240, 560], [258, 574], 246, 570);
+  g.strokeStyle = "rgba(255,250,215,0.16)";
+  fold([234, 616], [258, 640], 243, 630); fold([368, 606], [348, 636], 360, 624);
+  // shoulder seam
+  g.strokeStyle = "rgba(26,22,8,0.55)"; g.lineWidth = 1.6; g.setLineDash([4, 3]);
+  g.beginPath(); g.moveTo(222, 514); g.quadraticCurveTo(300, 530, 380, 514); g.stroke(); g.setLineDash([]);
+  g.restore();
+}
+
+function belt(back) {
+  g.save(); torso(); g.clip();
+  g.beginPath(); g.moveTo(200, 640); g.quadraticCurveTo(300, 650, 400, 640); g.lineTo(400, 662); g.quadraticCurveTo(300, 672, 200, 662); g.closePath();
+  fill(LE_D); stroke(2.4);
+  if (!back) { g.beginPath(); g.roundRect(287, 641, 26, 24, 3); fill(BRASS); stroke(2.2);
+    g.beginPath(); g.moveTo(291, 645); g.lineTo(300, 645); stroke(1.6, "rgba(255,255,255,0.7)"); }
+  g.restore();
+}
+function pocket(x, y, w, h) {
+  g.beginPath(); g.moveTo(x - w / 2, y); g.lineTo(x + w / 2, y); g.lineTo(x + w / 2 - 1, y + h); g.quadraticCurveTo(x, y + h + 4, x - w / 2 + 1, y + h); g.closePath();
+  fill("rgba(255,250,215,0.05)"); stroke(2.2, INK);
+  g.beginPath(); g.moveTo(x - w / 2 - 2, y - 8); g.lineTo(x + w / 2 + 2, y - 8); g.lineTo(x + w / 2 + 1, y + 8); g.lineTo(x, y + 13); g.lineTo(x - w / 2 - 1, y + 8); g.closePath();
+  fill(LE_D); stroke(2.2);
+  g.beginPath(); g.arc(x, y + 8, 3.4, 0, 7); fill(BRASS); stroke(1.3);
+}
+function front() {
+  cloth(false);
+  g.save(); torso(); g.clip();
+  // khaki shirt and tie in the V
+  g.beginPath(); g.moveTo(258, 456); g.lineTo(342, 456); g.lineTo(300, 560); g.closePath(); fill(SHIRT);
+  g.beginPath(); g.moveTo(294, 470); g.lineTo(306, 470); g.lineTo(309, 548); g.lineTo(300, 560); g.lineTo(291, 548); g.closePath(); fill(TIE); stroke(1.8);
+  g.beginPath(); g.moveTo(292, 462); g.lineTo(308, 462); g.lineTo(305, 474); g.lineTo(295, 474); g.closePath(); fill(TIE); stroke(1.6);
+  // lapels
+  for (const s of [-1, 1]) {
+    g.beginPath(); g.moveTo(300 + s * 44, 452); g.lineTo(300 + s * 2, 566); g.lineTo(300 + s * 30, 528); g.lineTo(300 + s * 46, 512); g.lineTo(300 + s * 58, 470); g.closePath();
+    fill(s < 0 ? LE_L : LE); stroke(2.4);
+  }
+  // brass buttons down the front
+  for (const y of [580, 608, 632]) { g.beginPath(); g.arc(300, y, 3.8, 0, 7); fill(BRASS); stroke(1.3); }
+  g.beginPath(); g.moveTo(300, 566); g.lineTo(300, 727); stroke(1.6, "rgba(26,22,8,0.6)");
+  // chest and hip pockets
+  pocket(254, 566, 42, 30); pocket(346, 566, 42, 30);
+  pocket(248, 678, 48, 34); pocket(352, 678, 48, 34);
+  // ribbon bar over the left chest pocket (generic colours)
+  const cols = ["#C8202A", "#F4F4F4", "#1F54C8", "#F2C230", "#2E8A3A", "#C8202A"];
+  cols.forEach((col, i) => { g.beginPath(); g.rect(338 + (i % 3) * 10, 536 + Math.floor(i / 3) * 7, 10, 7); fill(col); });
+  g.beginPath(); g.rect(338, 536, 30, 14); stroke(1.4);
+  // shoulder straps with two silver stars each
+  for (const s of [-1, 1]) {
+    g.beginPath(); g.moveTo(300 + s * 44, 492); g.lineTo(300 + s * 70, 506); g.lineTo(300 + s * 66, 518); g.lineTo(300 + s * 40, 504); g.closePath(); fill(LE_D); stroke(2);
+    for (const k of [0, 1]) star(300 + s * (49 + k * 12), 501 + k * 7, 4.6);
+  }
+  g.restore();
+  belt(false);
+}
+function star(x, y, r) {
+  g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+  g.closePath(); fill(SILVER); stroke(0.9);
+}
+function backSide() {
+  cloth(true);
+  g.save(); torso(); g.clip();
+  g.beginPath(); g.moveTo(250, 456); g.lineTo(350, 456); g.quadraticCurveTo(326, 486, 300, 488); g.quadraticCurveTo(274, 486, 250, 456); g.closePath(); fill(LE_D); stroke(2.4);
+  g.beginPath(); g.moveTo(300, 490); g.lineTo(300, 727); stroke(1.6, "rgba(26,22,8,0.6)");
+  for (const s of [-1, 1]) { g.beginPath(); g.moveTo(300 + s * 44, 492); g.lineTo(300 + s * 70, 506); g.lineTo(300 + s * 66, 518); g.lineTo(300 + s * 40, 504); g.closePath(); fill(LE_D); stroke(2); }
+  g.restore();
+  belt(true);
+}
+
+// ---------- officer's peaked service cap (hat over the head x 95-505; DY moves it for a lower head, Omar: dy=48) ----------
+const DY = +((location.search.match(/dy=(-?\d+)/) || [, "0"])[1]);
+const VISOR = "#4A2A14", VISOR_L = "#7A4A26", GOLD = "#F0C232", GOLD_D = "#B8861A";
+function capTop() {                 // the wide stiff top, seen a little from below
+  g.beginPath(); g.moveTo(72, 150); g.bezierCurveTo(80, 92, 190, 66, 300, 66); g.bezierCurveTo(410, 66, 520, 92, 528, 150);
+  g.bezierCurveTo(520, 172, 470, 182, 450, 186); g.lineTo(150, 186); g.bezierCurveTo(130, 182, 80, 172, 72, 150); g.closePath();
+}
+function band() { g.beginPath(); g.moveTo(132, 184); g.lineTo(468, 184); g.lineTo(474, 246); g.quadraticCurveTo(300, 256, 126, 246); g.closePath(); }
+function visor() { g.beginPath(); g.moveTo(118, 240); g.quadraticCurveTo(300, 262, 482, 240); g.quadraticCurveTo(470, 284, 300, 290); g.quadraticCurveTo(130, 284, 118, 240); g.closePath(); }
+function hat(back) {
+  g.save(); g.translate(0, DY);
+  const X = (x) => (back ? 600 - x : x);
+  band(); const bg = g.createLinearGradient(132, 0, 468, 0); bg.addColorStop(0, LE_L); bg.addColorStop(0.7, LE); bg.addColorStop(1, LE_D);
+  g.fillStyle = bg; g.fill(); stroke(6);
+  // dark band strip
+  g.save(); band(); g.clip(); g.beginPath(); g.rect(100, 208, 400, 30); fill(LE_DD); g.restore();
+  capTop(); const tg = g.createRadialGradient(X(220), 90, 10, 300, 130, 260); tg.addColorStop(0, LE_L); tg.addColorStop(0.7, LE); tg.addColorStop(1, LE_D);
+  g.fillStyle = tg; g.fill(); stroke(6);
+  g.save(); capTop(); g.clip(); g.fillStyle = "rgba(255,250,215,0.18)"; g.beginPath(); g.ellipse(X(200), 96, 70, 14, 0, 0, 7); g.fill(); g.restore();
+  if (!back) {
+    // chin strap (brown leather) with two little brass buttons
+    g.beginPath(); g.moveTo(136, 236); g.quadraticCurveTo(300, 246, 464, 236); stroke(12, INK); g.beginPath(); g.moveTo(136, 236); g.quadraticCurveTo(300, 246, 464, 236); stroke(7, VISOR_L);
+    for (const x of [140, 460]) { g.beginPath(); g.arc(x, 236, 7, 0, 7); fill(GOLD); stroke(2); }
+    // shiny leather visor with gold leaves along it (a general's visor)
+    visor(); const vg = g.createLinearGradient(0, 240, 0, 290); vg.addColorStop(0, VISOR_L); vg.addColorStop(0.5, VISOR); vg.addColorStop(1, "#2A160A");
+    g.fillStyle = vg; g.fill(); stroke(6);
+    for (let i = 0; i < 9; i++) { const x = 160 + i * 35, y = 268 + Math.abs(i - 4) * -2.4;
+      g.beginPath(); g.ellipse(x, y, 13, 6, (i % 2 ? 0.5 : -0.5), 0, 7); fill(GOLD); stroke(1.6, GOLD_D); }
+    g.beginPath(); g.ellipse(X(240), 258, 70, 4, 0, Math.PI * 1.05, Math.PI * 1.95); stroke(2.5, "rgba(255,255,255,0.5)");
+    // invented gold emblem: a shield with spread wings and one star
+    const ex = 300, ey = 150;
+    for (const s of [-1, 1]) { g.beginPath(); g.moveTo(ex + s * 10, ey - 6); g.quadraticCurveTo(ex + s * 46, ey - 34, ex + s * 64, ey - 10);
+      g.quadraticCurveTo(ex + s * 40, ey - 6, ex + s * 44, ey + 6); g.quadraticCurveTo(ex + s * 26, ey + 4, ex + s * 10, ey + 14); g.closePath(); fill(GOLD); stroke(2.6); }
+    g.beginPath(); g.moveTo(ex - 20, ey - 26); g.lineTo(ex + 20, ey - 26); g.lineTo(ex + 20, ey + 6); g.quadraticCurveTo(ex, ey + 30, ex - 20, ey + 6); g.closePath(); fill(GOLD); stroke(2.6);
+    star(ex, ey - 6, 10);
+  } else {
+    // from the back the visor is hidden behind the head
+  }
+  g.restore();
+}
+
+if (v === "preview") { g.fillStyle = "#C4C6D2"; g.fillRect(0, 0, 600, 1000); g.save(); g.translate(-100, 0); front(); g.restore(); g.save(); g.translate(100, 0); backSide(); g.restore(); }
+else if (v === "torso_front") front();
+else if (v === "torso_back") backSide();
+else if (v === "hat_front") hat(false);
+else if (v === "hat_back") hat(true);
+document.title = "done";
+</script></body></html>

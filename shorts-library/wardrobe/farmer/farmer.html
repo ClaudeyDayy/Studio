@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html><head><style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body><canvas id="c" width="600" height="1000"></canvas>
+<script>
+// Farmer shirt (Vietnam tunnels video, 2026-11-12): a loose dark indigo collarless shirt (like an "ao ba ba"),
+// cloth buttons down the front, two low patch pockets, side slits at the hem, a black-and-white checked scarf
+// knotted at the neck. 600x1000 library grid (torso x 205-396, y 461-727), light from the upper left.
+// ?v=torso_front | torso_back | preview
+const v = (location.search.match(/v=(\w+)/) || [, "torso_front"])[1];
+const c = document.getElementById("c"), g = c.getContext("2d");
+const INK = "#1a1020";
+const IN = "#2C3866", IN_L = "#3B4A80", IN_D = "#222B52", BTN = "#1A1F3A";
+const stroke = (w = 3, col = INK) => { g.lineWidth = w; g.strokeStyle = col; g.lineJoin = "round"; g.lineCap = "round"; g.stroke(); };
+const fill = (col) => { g.fillStyle = col; g.fill(); };
+
+function torso() {
+  g.beginPath(); g.moveTo(250, 461); g.lineTo(354, 461);
+  g.bezierCurveTo(380, 500, 397, 560, 396, 620); g.bezierCurveTo(397, 688, 362, 727, 301, 727);
+  g.bezierCurveTo(240, 727, 204, 688, 205, 620); g.bezierCurveTo(204, 560, 222, 500, 250, 461); g.closePath();
+}
+function cloth(back) {
+  torso();
+  const gr = g.createLinearGradient(205, 0, 396, 0);
+  gr.addColorStop(0, IN_L); gr.addColorStop(0.3, IN); gr.addColorStop(0.8, IN); gr.addColorStop(1, IN_D);
+  g.fillStyle = gr; g.fill();
+  g.save(); torso(); g.clip();
+  const L = back ? -1 : 1, X = (x) => (back ? 601 - x : x);
+  g.fillStyle = "rgba(10,12,30,0.35)"; g.beginPath(); g.ellipse(X(398), 600, 30, 140, 0, 0, 7); g.fill();
+  g.fillStyle = "rgba(255,255,255,0.08)"; g.beginPath(); g.ellipse(X(214), 585, 10, 95, 0.08 * L, 0, 7); g.fill();
+  // loose cloth: long soft folds
+  g.lineCap = "round";
+  const fold = (a, b, cx, cy, col, w) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(X(a[0]), a[1]); g.quadraticCurveTo(X(cx), cy, X(b[0]), b[1]); g.stroke(); };
+  for (const [a, b, cx, cy] of [[[236, 540], [228, 640], 226, 590], [[366, 540], [372, 650], 376, 594], [[262, 600], [252, 700], 252, 650], [[342, 606], [350, 706], 352, 656], [[300, 640], [296, 716], 302, 680]])
+    fold(a, b, cx, cy, "rgba(10,12,30,0.5)", 2.4);
+  for (const [a, b, cx, cy] of [[[240, 544], [232, 636], 231, 590], [[266, 604], [256, 694], 257, 650]]) fold(a, b, cx, cy, "rgba(255,255,255,0.10)", 2);
+  // hem with side slits
+  g.beginPath(); g.moveTo(206, 690); g.quadraticCurveTo(300, 716, 396, 690); stroke(1.6, "rgba(10,12,30,0.55)");
+  for (const x of [222, 380]) { g.beginPath(); g.moveTo(x, 684); g.lineTo(x + (x < 300 ? 4 : -4), 726); stroke(2, "rgba(10,12,30,0.75)"); }
+  g.restore();
+}
+function scarf(back) {
+  const CHK = (x0, y0, w, h, rot) => {             // a black-and-white check pattern inside the current path
+    g.save(); g.clip(); g.fillStyle = "#F1EEE6"; g.fillRect(x0 - 60, y0 - 60, w + 120, h + 120);
+    g.translate(x0, y0); g.rotate(rot || 0); g.fillStyle = "#17161C";
+    for (let i = -12; i < 18; i++) { g.fillRect(i * 9, -80, 4.5, 200); g.fillRect(-80, i * 9, 200, 4.5); }
+    g.fillStyle = "rgba(23,22,28,0.55)"; for (let i = -12; i < 18; i++) for (let k = -12; k < 18; k++) g.fillRect(i * 9 + 4.5, k * 9 + 4.5, 4.5, 4.5);
+    g.restore();
+  };
+  // the band round the neck
+  g.beginPath(); g.moveTo(244, 456); g.quadraticCurveTo(300, 476, 356, 456); g.lineTo(358, 476); g.quadraticCurveTo(300, 500, 242, 476); g.closePath();
+  g.save(); CHK(240, 450, 120, 50, 0.1); g.restore();
+  g.beginPath(); g.moveTo(244, 456); g.quadraticCurveTo(300, 476, 356, 456); g.lineTo(358, 476); g.quadraticCurveTo(300, 500, 242, 476); g.closePath(); stroke(2.4);
+  if (back) return;
+  // the knot and two hanging ends (on the wearer's right, viewer's left)
+  g.beginPath(); g.moveTo(262, 486); g.lineTo(250, 548); g.lineTo(262, 556); g.lineTo(276, 548); g.lineTo(276, 492); g.closePath();
+  g.save(); CHK(250, 486, 30, 70, 0.2); g.restore(); g.beginPath(); g.moveTo(262, 486); g.lineTo(250, 548); g.lineTo(262, 556); g.lineTo(276, 548); g.lineTo(276, 492); g.closePath(); stroke(2.2);
+  g.beginPath(); g.moveTo(272, 488); g.lineTo(286, 536); g.lineTo(296, 538); g.lineTo(300, 526); g.lineTo(288, 488); g.closePath();
+  g.save(); CHK(272, 488, 30, 50, -0.3); g.restore(); g.beginPath(); g.moveTo(272, 488); g.lineTo(286, 536); g.lineTo(296, 538); g.lineTo(300, 526); g.lineTo(288, 488); g.closePath(); stroke(2.2);
+  for (const [x, y] of [[250, 548], [262, 556], [276, 548], [286, 536], [296, 538]]) { g.beginPath(); g.moveTo(x, y); g.lineTo(x + (x - 272) * 0.08, y + 6); stroke(1.4, "#F1EEE6"); }
+  g.beginPath(); g.ellipse(272, 484, 13, 11, 0.3, 0, 7); g.save(); CHK(258, 472, 30, 26, 0.6); g.restore();
+  g.beginPath(); g.ellipse(272, 484, 13, 11, 0.3, 0, 7); stroke(2.2);
+}
+function front() {
+  cloth(false);
+  g.save(); torso(); g.clip();
+  // collarless round neck band
+  g.beginPath(); g.moveTo(256, 458); g.quadraticCurveTo(300, 498, 344, 458); stroke(9, IN_D); g.beginPath(); g.moveTo(256, 458); g.quadraticCurveTo(300, 498, 344, 458); stroke(1.6);
+  // front opening with cloth buttons
+  g.beginPath(); g.moveTo(300, 478); g.lineTo(300, 704); stroke(1.8, "rgba(10,12,30,0.8)");
+  g.beginPath(); g.moveTo(303, 480); g.lineTo(303, 704); stroke(1.2, "rgba(255,255,255,0.12)");
+  for (const y of [520, 560, 600, 640]) { g.beginPath(); g.arc(300, y, 4.2, 0, 7); fill(BTN); stroke(1.3); g.beginPath(); g.arc(299, y - 1.4, 1.3, 0, 7); fill("rgba(255,255,255,0.35)"); }
+  // two low patch pockets
+  for (const x of [252, 348]) {
+    g.beginPath(); g.moveTo(x - 26, 636); g.lineTo(x + 26, 636); g.lineTo(x + 25, 682); g.quadraticCurveTo(x, 688, x - 25, 682); g.closePath();
+    fill("rgba(255,255,255,0.05)"); stroke(1.8, "rgba(10,12,30,0.9)");
+    g.beginPath(); g.moveTo(x - 23, 642); g.lineTo(x + 23, 642); g.setLineDash([3, 3]); stroke(1.1, "rgba(255,255,255,0.25)"); g.setLineDash([]);
+  }
+  g.restore();
+  g.save(); torso(); g.clip(); scarf(false); g.restore();
+}
+function backSide() {
+  cloth(true);
+  g.save(); torso(); g.clip();
+  g.beginPath(); g.moveTo(300, 500); g.lineTo(300, 700); stroke(1.2, "rgba(10,12,30,0.4)");
+  scarf(true);
+  g.restore();
+}
+if (v === "preview") { g.fillStyle = "#C4C6D2"; g.fillRect(0, 0, 600, 1000); g.save(); g.translate(-100, 0); front(); g.restore(); g.save(); g.translate(100, 0); backSide(); g.restore(); }
+else if (v === "torso_front") front();
+else if (v === "torso_back") backSide();
+document.title = "done";
+</script></body></html>

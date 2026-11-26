@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html><head><style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body><canvas id="c" width="1200" height="2000"></canvas>
+<script>
+// Clear bubble space helmet (needle video, 2026-11-16) on the 600x1000 library grid at 2x. The face stays fully visible.
+// ?v=front | back | mask  & c=blue | orange (the collar band colour)
+const q = new URLSearchParams(location.search);
+const v = q.get("v") || "front", ACC = q.get("c") === "orange" ? "#F07A2A" : "#2F6FD8";
+const c = document.getElementById("c"), g = c.getContext("2d"); g.scale(2, 2);
+const INK = "#1a1020", CX = 300, CY = 262, R = 262;
+if (v !== "mask") {
+  // the glass: a faint blue tint, a darker edge
+  const gl = g.createRadialGradient(CX, CY, R * 0.55, CX, CY, R);
+  gl.addColorStop(0, "rgba(255,255,255,0)"); gl.addColorStop(0.9, "rgba(255,255,255,0)"); gl.addColorStop(1, "rgba(210,235,255,0.22)");
+  g.beginPath(); g.arc(CX, CY, R, 0, 7); g.fillStyle = gl; g.fill();
+  g.beginPath(); g.arc(CX, CY, R, 0, 7); g.lineWidth = 5; g.strokeStyle = INK; g.stroke();
+  g.beginPath(); g.arc(CX, CY, R - 7, 0, 7); g.lineWidth = 2; g.strokeStyle = "rgba(235,248,255,0.6)"; g.stroke();
+  // shine on the glass (upper left on the front; smaller on the back)
+  const b = v === "back";
+  g.lineCap = "round";
+  g.beginPath(); g.arc(CX, CY, R - 30, b ? -1.55 : -2.75, b ? -1.05 : -1.9); g.lineWidth = 12; g.strokeStyle = "rgba(255,255,255,0.8)"; g.stroke();
+  g.beginPath(); g.arc(CX, CY, R - 30, -1.82, -1.68); g.lineWidth = 16; g.strokeStyle = "rgba(255,255,255,0.6)"; if (!b) g.stroke();
+  g.beginPath(); g.arc(CX + 150, CY + 150, 14, 0, 7); g.fillStyle = "rgba(255,255,255,0.45)"; if (!b) g.fill();
+  // the collar: a metal ring with a coloured band
+  g.beginPath(); g.ellipse(CX, 500, 176, 34, 0, 0, 7); g.fillStyle = "#C9CDD8"; g.fill(); g.lineWidth = 6; g.strokeStyle = INK; g.stroke();
+  g.beginPath(); g.ellipse(CX, 506, 176, 18, 0, 0.15, Math.PI - 0.15); g.lineWidth = 10; g.strokeStyle = ACC; g.stroke();
+  g.beginPath(); g.ellipse(CX, 492, 150, 16, 0, Math.PI + 0.3, -0.3); g.lineWidth = 4; g.strokeStyle = "rgba(255,255,255,0.8)"; g.stroke();
+}
+document.title = "done";
+</script></body></html>

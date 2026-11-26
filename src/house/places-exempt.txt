@@ -1,0 +1,34 @@
+# Video folders made BEFORE the place library (2026-11-16). render.mjs lets these render without engine/places.
+# NEVER add a new video here. A new video uses the library, or has  // PLACES-EXEMPT: <reason>  in its video.ts.
+_engine_template
+_face-test
+_outdoor-test
+_r3-test
+_t1
+_t2
+_tree-test
+bank
+bank2
+chess2
+cityhit-preview
+gunmenu-preview
+needle-preview
+needle
+needletext-preview
+phone-preview
+phonehit-preview
+vietnam
+vietnam2
+vietnam3
+whalehit-preview
+_old/bank2-warp
+_old/chess2-before-fix-nov9
+_old/engine-before-bank2-r3
+_old/engine-before-fable52
+_old/engine-before-look3d
+_old/engine-before-r3knrf
+_old/new-video-2d
+_old/template-before-whip
+_old/vietnam-template
+_old/vietnam3-before-heli-shafts
+_old/vietnam3-before-whip-trees

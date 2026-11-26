@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html><head><style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body><canvas id="c" width="600" height="1000"></canvas>
+<script>
+// 1940s bomber pilot leather flight jacket (Wald bomber video, 2026-11-20), on the 600x1000 library grid (torso x 205-396, y 461-727).
+// ?v=torso_front | torso_back | preview          Light from the upper left. Same torso shape and ink as army.html / police.html.
+// Brown leather, cream sheepskin collar, white scarf, centre zip, two snap-flap pockets, knit waistband,
+// one invented round patch (no real insignia, no text). Back: yoke seam, panel seams, waistband.
+const v = (location.search.match(/v=(\w+)/) || [, "torso_front"])[1];
+const FLAT = /flat=1/.test(location.search);  // flat = no painted light (for the 3D version)
+const c = document.getElementById("c"), g = c.getContext("2d");
+const INK = "#1a1020";
+const LE = "#8E4A1E", LE_L = "#B0652C", LE_D = "#6A3412", LE_DD = "#4A220A";
+const FUR = "#F3E2C2", FUR_D = "#D9BF8E", KNIT = "#5C2E14", KNIT_D = "#401E0C", SCARF = "#FFFFFF", METAL = "#D8B85A";
+const stroke = (w = 3, col = INK) => { g.lineWidth = w; g.strokeStyle = col; g.lineJoin = "round"; g.lineCap = "round"; g.stroke(); };
+const fill = (col) => { g.fillStyle = col; g.fill(); };
+
+function torso() {
+  g.beginPath(); g.moveTo(250, 461); g.lineTo(354, 461);
+  g.bezierCurveTo(380, 500, 397, 560, 396, 620); g.bezierCurveTo(397, 688, 362, 727, 301, 727);
+  g.bezierCurveTo(240, 727, 204, 688, 205, 620); g.bezierCurveTo(204, 560, 222, 500, 250, 461); g.closePath();
+}
+function cloth(back) {
+  torso();
+  const gr = g.createLinearGradient(205, 0, 396, 0);
+  gr.addColorStop(0, LE_L); gr.addColorStop(0.3, LE); gr.addColorStop(0.8, LE); gr.addColorStop(1, LE_D);
+  g.fillStyle = FLAT ? LE : gr; g.fill();
+  g.save(); torso(); g.clip();
+  const L = back ? -1 : 1, X = (x) => (back ? 601 - x : x);
+  if (!FLAT) {
+  g.fillStyle = "rgba(40,18,6,0.35)"; g.beginPath(); g.ellipse(X(398), 600, 30, 140, 0, 0, 7); g.fill();
+  g.fillStyle = "rgba(255,235,210,0.12)"; g.beginPath(); g.ellipse(X(216), 580, 10, 95, 0.08 * L, 0, 7); g.fill();
+  }
+  // leather creases (a little shine on each)
+  g.strokeStyle = "rgba(40,18,6,0.5)"; g.lineWidth = 2.2; g.lineCap = "round";
+  const fold = (a, b, cx, cy) => { g.beginPath(); g.moveTo(X(a[0]), a[1]); g.quadraticCurveTo(X(cx), cy, X(b[0]), b[1]); g.stroke(); };
+  fold([230, 620], [254, 646], 238, 636); fold([372, 612], [350, 644], 364, 632); fold([240, 560], [258, 574], 246, 570);
+  g.strokeStyle = "rgba(255,235,210,0.16)";
+  fold([234, 616], [258, 640], 243, 630); fold([368, 606], [348, 636], 360, 624);
+  // shoulder seam
+  g.strokeStyle = "rgba(40,18,6,0.55)"; g.lineWidth = 1.6; g.setLineDash([4, 3]);
+  g.beginPath(); g.moveTo(222, 514); g.quadraticCurveTo(300, 530, 380, 514); g.stroke(); g.setLineDash([]);
+  g.restore();
+}
+function waistband() {
+  g.save(); torso(); g.clip();
+  g.beginPath(); g.moveTo(200, 678); g.quadraticCurveTo(300, 688, 400, 678); g.lineTo(400, 740); g.lineTo(200, 740); g.closePath();
+  const kg = g.createLinearGradient(0, 678, 0, 730); kg.addColorStop(0, KNIT); kg.addColorStop(1, KNIT_D);
+  g.fillStyle = kg; g.fill(); stroke(2.5);
+  g.strokeStyle = "rgba(20,10,4,0.45)"; g.lineWidth = 1.6;           // knit ribs
+  for (let x = 208; x < 396; x += 7) { g.beginPath(); g.moveTo(x, 684 + (1 - ((x - 300) / 100) ** 2) * 6); g.lineTo(x, 730); g.stroke(); }
+  g.restore();
+}
+function front() {
+  cloth(false);
+  g.save(); torso(); g.clip();
+  // white scarf in the neck opening
+  g.beginPath(); g.moveTo(262, 456); g.lineTo(338, 456); g.lineTo(306, 520); g.lineTo(294, 520); g.closePath(); fill(SCARF);
+  g.beginPath(); g.moveTo(286, 470); g.quadraticCurveTo(300, 492, 312, 470); stroke(1.4, "rgba(120,110,90,0.5)");
+  // centre zip
+  g.beginPath(); g.moveTo(300, 518); g.lineTo(300, 680); stroke(5, LE_DD);
+  g.setLineDash([2, 2.5]); g.beginPath(); g.moveTo(300, 518); g.lineTo(300, 680); stroke(3, METAL); g.setLineDash([]);
+  g.beginPath(); g.roundRect(295, 520, 10, 14, 2); fill(METAL); stroke(1.4);
+  // patch pockets with snap flaps
+  for (const s of [-1, 1]) {
+    const x = 300 + s * 52;
+    g.beginPath(); g.moveTo(x - 27, 598); g.lineTo(x + 27, 598); g.lineTo(x + 26, 664); g.quadraticCurveTo(x, 670, x - 26, 664); g.closePath();
+    fill("rgba(255,235,210,0.05)"); stroke(2.2, INK);
+    g.beginPath(); g.moveTo(x - 29, 590); g.lineTo(x + 29, 590); g.lineTo(x + 28, 610); g.quadraticCurveTo(x, 616, x - 28, 610); g.closePath(); fill(LE_D); stroke(2.2);
+    g.beginPath(); g.arc(x, 607, 3.2, 0, 7); fill(METAL); stroke(1.2);
+  }
+  // invented round patch on the left chest: blue disc, white wings, gold rim (no text, no real insignia)
+  const px = 250, py = 554;
+  g.beginPath(); g.arc(px, py, 17, 0, 7); fill("#F2C230"); stroke(2.2);
+  g.beginPath(); g.arc(px, py, 13, 0, 7); fill("#1F54C8");
+  g.beginPath(); g.moveTo(px - 11, py - 1); g.quadraticCurveTo(px - 4, py - 7, px, py + 1); g.quadraticCurveTo(px + 4, py - 7, px + 11, py - 1);
+  g.quadraticCurveTo(px + 4, py + 2, px, py + 4); g.quadraticCurveTo(px - 4, py + 2, px - 11, py - 1); fill("#FFFFFF");
+  g.restore();
+  // sheepskin collar, lying open over the shoulders
+  g.save(); torso(); g.clip();
+  for (const s of [-1, 1]) {
+    g.beginPath(); g.moveTo(300 + s * 40, 452); g.quadraticCurveTo(300 + s * 70, 470, 300 + s * 74, 500);
+    g.lineTo(300 + s * 40, 548); g.lineTo(300 + s * 8, 522); g.quadraticCurveTo(300 + s * 20, 480, 300 + s * 40, 452); g.closePath();
+    fill(s < 0 ? FUR : FUR_D); stroke(2.4);
+    g.strokeStyle = "rgba(140,100,50,0.6)"; g.lineWidth = 1.6; g.lineCap = "round";   // fleece curls
+    for (let i = 0; i < 11; i++) { const x = 300 + s * (20 + ((i * 37) % 44)), y = 474 + ((i * 23) % 56);
+      g.beginPath(); g.arc(x, y, 3, 0.4, 3.6); g.stroke(); }
+  }
+  g.restore();
+  waistband();
+}
+function backSide() {
+  cloth(true);
+  g.save(); torso(); g.clip();
+  // collar from behind
+  g.beginPath(); g.moveTo(244, 456); g.lineTo(356, 456); g.quadraticCurveTo(330, 494, 300, 496); g.quadraticCurveTo(270, 494, 244, 456); g.closePath(); fill(FUR_D); stroke(2.4);
+  // yoke seam and two panel seams
+  g.beginPath(); g.moveTo(214, 540); g.quadraticCurveTo(300, 556, 388, 540); stroke(1.8, "rgba(30,14,4,0.6)");
+  g.beginPath(); g.moveTo(258, 552); g.quadraticCurveTo(254, 620, 262, 680); stroke(1.5, "rgba(30,14,4,0.5)");
+  g.beginPath(); g.moveTo(343, 552); g.quadraticCurveTo(347, 620, 339, 680); stroke(1.5, "rgba(30,14,4,0.5)");
+  g.restore();
+  waistband();
+}
+
+// ---------- leather flying helmet with goggles (hat over the head x 95-505, top y 50; DY moves it for a lower head) ----------
+const DY = +((location.search.match(/dy=(-?\d+)/) || [, "0"])[1]);
+function helmet() {
+  g.beginPath(); g.moveTo(92, 250);
+  g.bezierCurveTo(92, 124, 186, 46, 300, 46); g.bezierCurveTo(414, 46, 508, 124, 508, 250); g.closePath();
+}
+function flap(s) {               // ear flap hanging down at each side
+  g.beginPath(); g.moveTo(300 + s * 212, 200); g.quadraticCurveTo(300 + s * 220, 300, 300 + s * 196, 352);
+  g.quadraticCurveTo(300 + s * 170, 372, 300 + s * 150, 346); g.lineTo(300 + s * 146, 230); g.closePath();
+}
+function hat(back) {
+  g.save(); g.translate(0, DY);
+  const X = (x) => (back ? 600 - x : x);
+  for (const s of [-1, 1]) {
+    flap(s); fill(s * (back ? -1 : 1) < 0 ? LE_L : LE_D); stroke(6);
+    g.save(); flap(s); g.clip(); g.beginPath(); g.moveTo(300 + s * 150, 300); g.quadraticCurveTo(300 + s * 190, 314, 300 + s * 214, 296); stroke(2, "rgba(30,14,4,0.6)"); g.restore();
+    // fur lining peeking at the flap edge and the unbuckled chin strap
+    g.beginPath(); g.moveTo(300 + s * 152, 344); g.quadraticCurveTo(300 + s * 172, 366, 300 + s * 194, 350); stroke(5, FUR);
+    g.beginPath(); g.moveTo(300 + s * 172, 360); g.lineTo(300 + s * 166, 400); stroke(9, INK); g.beginPath(); g.moveTo(300 + s * 172, 360); g.lineTo(300 + s * 166, 398); stroke(5, LE_D);
+  }
+  helmet();
+  const cg = g.createRadialGradient(X(220), 110, 20, 300, 200, 300);
+  cg.addColorStop(0, LE_L); cg.addColorStop(0.6, LE); cg.addColorStop(1, LE_D);
+  g.fillStyle = cg; g.fill();
+  g.save(); helmet(); g.clip();
+  g.fillStyle = "rgba(40,16,4,0.35)"; g.beginPath(); g.ellipse(X(505), 180, 110, 160, 0, 0, 7); g.fill();
+  g.fillStyle = "rgba(255,235,200,0.22)"; g.beginPath(); g.ellipse(X(190), 112, 26, 50, 0.7 * (back ? 1 : -1), 0, 7); g.fill();
+  // stitched panel seams
+  g.strokeStyle = "rgba(30,12,2,0.55)"; g.lineWidth = 2.6;
+  g.beginPath(); g.moveTo(300, 48); g.lineTo(300, 250); g.stroke();
+  g.beginPath(); g.moveTo(X(200), 76); g.quadraticCurveTo(X(170), 150, X(168), 250); g.stroke();
+  g.beginPath(); g.moveTo(X(400), 76); g.quadraticCurveTo(X(430), 150, X(432), 250); g.stroke();
+  g.setLineDash([4, 4]); g.strokeStyle = "rgba(255,225,180,0.4)"; g.lineWidth = 1.4;
+  g.beginPath(); g.moveTo(306, 52); g.lineTo(306, 250); g.stroke(); g.setLineDash([]);
+  // brow band
+  g.beginPath(); g.rect(80, 222, 440, 30); fill(LE_D);
+  g.beginPath(); g.moveTo(80, 222); g.lineTo(520, 222); stroke(3);
+  g.restore();
+  helmet(); stroke(7);
+  // goggle strap round the helmet
+  g.beginPath(); g.moveTo(96, 176); g.quadraticCurveTo(300, back ? 196 : 150, 504, 176); stroke(22, INK);
+  g.beginPath(); g.moveTo(96, 176); g.quadraticCurveTo(300, back ? 196 : 150, 504, 176); stroke(15, "#3A2A20");
+  if (!back) {
+    // goggles pushed up on the forehead: brass rims, blue-green glass with a shine
+    for (const s of [-1, 1]) {
+      const x = 300 + s * 62, y = 156;
+      g.beginPath(); g.ellipse(x, y, 54, 46, 0, 0, 7); fill("#E2B23C"); stroke(6);
+      g.beginPath(); g.ellipse(x, y, 40, 33, 0, 0, 7);
+      const lg = g.createLinearGradient(x - 40, y - 33, x + 40, y + 33); lg.addColorStop(0, "#9FE4E8"); lg.addColorStop(0.5, "#3FA7B8"); lg.addColorStop(1, "#1F6A86");
+      g.fillStyle = lg; g.fill(); stroke(3);
+      g.beginPath(); g.ellipse(x - 12, y - 10, 13, 6, -0.5, 0, 7); fill("rgba(255,255,255,0.75)");
+    }
+    g.beginPath(); g.moveTo(286, 150); g.quadraticCurveTo(300, 138, 314, 150); stroke(9, INK); g.beginPath(); g.moveTo(286, 150); g.quadraticCurveTo(300, 138, 314, 150); stroke(5, "#E2B23C");
+  }
+  g.restore();
+}
+
+if (v === "preview") { g.fillStyle = "#C4C6D2"; g.fillRect(0, 0, 600, 1000); g.save(); g.translate(-100, 0); front(); g.restore(); g.save(); g.translate(100, 0); backSide(); g.restore(); }
+else if (v === "torso_front") front();
+else if (v === "torso_back") backSide();
+else if (v === "hat_front") hat(false);
+else if (v === "hat_back") hat(true);
+document.title = "done";
+</script></body></html>

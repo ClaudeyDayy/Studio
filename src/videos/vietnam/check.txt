@@ -1,0 +1,30 @@
+CHECK vietnam: 2220 frames (every 2.), lens clearance 0.3 m, camera near 0.05 m / far 900 m
+
+CAMERA: 8 problem(s)
+  frames 30-30 (1.00-1.00 s): closer than 0.3 m to "Buffer" near [0.11, 0.25, 1.95]
+  frames 380-380 (12.67-12.67 s): closer than 0.3 m to "Plane" near [-0.17, 0.96, -0.21]
+  frames 1854-1854 (61.80-61.80 s): goes THROUGH "Box" near [66.76, 0.5, 13.23]
+  frames 1854-1856 (61.80-61.87 s): closer than 0.3 m to "Box" near [66.57, 0.45, 13.13]
+  frames 1858-1858 (61.93-61.93 s): goes THROUGH "Box" near [66.47, 0.45, 13.62]
+  frames 1858-1860 (61.93-62.00 s): closer than 0.3 m to "Box" near [66.38, 0.45, 13.73]
+  frames 2110-2110 (70.33-70.33 s): goes THROUGH "Plane" near [-292.2, 6.5, 11.32]
+  frames 2118-2118 (70.60-70.60 s): goes THROUGH "Buffer" near [-287.07, 7.61, 7.34]
+
+GROUND FLICKER: 15 pair(s)
+  "Shape" (y -0.002) and "Plane" (y -0.000) are flat layers 2 mm apart: wrap the upper one in onGround(mesh, level)
+  "Shape" (y -0.002) and "Plane" (y 0.010) are flat layers 12 mm apart: wrap the upper one in onGround(mesh, level)
+  "Shape" (y -0.002) and "Plane" (y 0.010) are flat layers 12 mm apart: wrap the upper one in onGround(mesh, level)
+  "Shape" (y -0.002) and "Plane" (y 0.010) are flat layers 12 mm apart: wrap the upper one in onGround(mesh, level)
+  "Shape" (y -0.002) and "Circle" (y 0.012) are flat layers 14 mm apart: wrap the upper one in onGround(mesh, level)
+  "Shape" (y -0.002) and "Plane" (y 0.010) are flat layers 12 mm apart: wrap the upper one in onGround(mesh, level)
+  "Shape" (y -0.002) and "Plane" (y 0.003) are flat layers 5 mm apart: wrap the upper one in onGround(mesh, level)
+  "Shape" (y -0.002) and "Plane" (y 0.004) are flat layers 6 mm apart: wrap the upper one in onGround(mesh, level)
+  "Shape" (y -0.002) and "Plane" (y 0.002) are flat layers 4 mm apart: wrap the upper one in onGround(mesh, level)
+  "Plane" (y -0.000) and "Plane" (y 0.010) are flat layers 10 mm apart: wrap the upper one in onGround(mesh, level)
+  "Plane" (y -0.000) and "Plane" (y 0.010) are flat layers 10 mm apart: wrap the upper one in onGround(mesh, level)
+  "Plane" (y 0.010) and "Plane" (y 0.010) are flat layers 0 mm apart: wrap the upper one in onGround(mesh, level)
+  "Plane" (y 0.012) and "Circle" (y 0.012) are flat layers 0 mm apart: wrap the upper one in onGround(mesh, level)
+  "Plane" (y 0.004) and "Plane" (y 0.002) are flat layers 2 mm apart: wrap the upper one in onGround(mesh, level)
+  "Plane" (y 6.503) and "Plane" (y 6.506) are flat layers 3 mm apart: wrap the upper one in onGround(mesh, level)
+
+DEPTH: near 0.05 m with far 900 m is coarse for a big place: set near: 0.2 in video.ts

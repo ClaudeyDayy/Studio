@@ -1,0 +1,1 @@
+Write the voice-over script here (one line per beat). Arian records the voice and makes words.json from it.

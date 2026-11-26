@@ -1,0 +1,360 @@
+// Characters as layered camera-facing cards made from the shorts-library PNGs.
+// Fixes from v1/v2: never hidden or culled; soft thick-thin dark-brown outline (thick on the lower right);
+// drawn arms removed from the card and replaced by real 3D stick arms from the shoulders to dot hands
+// (so a held piece sits exactly on the hand); faces fade over 6 frames; layers slide as the camera goes around.
+// v3.1: shoulders sit on the top corners of the SHIRT, just below where the head ends (in v3 they were at the neck,
+// hidden under the head, so the arms seemed to come out of the face).
+// v3.2: arms are FLAT camera-facing ink strokes (same weight as the drawn lines) with a round hand disc, starting just
+// behind the body card (so from behind there is no stub); seated cards tilt back from the NECK, not the hip, and at most
+// 0.45 rad (from the hip the head leaned over the table edge and the table's outline was drawn across the head);
+// the shirt is drawn 12 % wider so the bare body's outline no longer shows as black bands at its sides.
+import * as THREE from "three";
+import { defringeData } from "../post/fringe";
+import { NOINK } from "../post/ink";
+import { V3, smooth } from "../core/util";
+import { INK_BROWN, mkCanvas } from "../kit";
+import { Face, FACE_LIST, Life, makeLife } from "./life";
+
+export const PXM = 0.0013, HIP = 732, SOLE = 975;
+export const HAND_R = 0.024;
+const ARM_HW = 0.0085, HAND_DISC = 0.03, ARM_SEG = 14;   // stroke half width, hand disc radius (m), segments
+const NECK = 460;                                       // top of the torso in the 600x1000 library pictures
+const CW = 600, CH = 1000, SS = 2;                     // textures are drawn at 2x for smooth edges in close-ups
+export type Hand = "L" | "R";
+type Px = { x: number; y: number };
+
+export type CastTex = {
+  body: { seated: THREE.Texture; standing: THREE.Texture };
+  torsoF: { seated: THREE.Texture; standing: THREE.Texture };
+  torsoB: { seated: THREE.Texture; standing: THREE.Texture };
+  heads: Record<Face, THREE.Texture>; headBack: THREE.Texture;
+  hatF?: THREE.Texture; hatB?: THREE.Texture;   // a separate hat (library/hats/<name>/), drawn over the head
+  shoulder: Record<Hand, Px>;          // image pixels; R = the character's right = image left
+  W: number;                           // head width in pixels
+};
+
+const tex = (c: HTMLCanvasElement) => {
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+  t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; return t;
+};
+const clean1x = (im: HTMLImageElement) => {
+  const c = mkCanvas(CW, CH), g = c.getContext("2d", { willReadFrequently: true })!;
+  g.drawImage(im, 0, 0, CW, CH);
+  const id = g.getImageData(0, 0, CW, CH); defringeData(id.data, CW, CH); g.putImageData(id, 0, 0);
+  return c;
+};
+const alphaOf = (c: HTMLCanvasElement) => c.getContext("2d", { willReadFrequently: true })!.getImageData(0, 0, CW, CH).data;
+
+const headWidth = (c: HTMLCanvasElement) => {
+  const d = alphaOf(c); let x0 = CW, x1 = 0;
+  for (let y = 0; y < CH; y++) for (let x = 0; x < CW; x++) if (d[(y * CW + x) * 4 + 3] > 40) { if (x < x0) x0 = x; if (x > x1) x1 = x; }
+  return x1 > x0 ? x1 - x0 : 330;
+};
+// lowest row of the head picture (its chin / bottom outline)
+const headBottom = (c: HTMLCanvasElement) => {
+  const d = alphaOf(c);
+  for (let y = CH - 1; y >= 0; y--) for (let x = 120; x < 480; x++) if (d[(y * CW + x) * 4 + 3] > 40) return y;
+  return 0;
+};
+// solid run through the middle of a row (ignoring the erased-arm pixels)
+const rowRun = (c: HTMLCanvasElement, y: number, arm: Uint8Array) => {
+  const d = alphaOf(c), A = (x: number) => d[(y * CW + x) * 4 + 3] > 40 && !arm[y * CW + x];
+  if (!A(300)) return null;
+  let l = 300, r = 300; while (l > 0 && A(l - 1)) l--; while (r < CW - 1 && A(r + 1)) r++;
+  return r - l > 40 ? { l, r } : null;
+};
+
+// Find the drawn arms on the bare body (pixels left/right of the torso, connected), so they can be erased.
+const analyseBody = (body: HTMLCanvasElement, W: number) => {
+  const d = alphaOf(body), A = (x: number, y: number) => d[(y * CW + x) * 4 + 3] > 40;
+  const runL = new Int16Array(CH).fill(-1), runR = new Int16Array(CH).fill(-1);
+  for (let y = 0; y < CH; y++) if (A(300, y)) {
+    let l = 300, r = 300; while (l > 0 && A(l - 1, y)) l--; while (r < CW - 1 && A(r + 1, y)) r++; runL[y] = l; runR[y] = r;
+  }
+  let ref = HIP - 100; while (ref > 200 && runL[ref] < 0) ref--;
+  let top = ref, bot = ref;
+  while (top > 0 && runL[top - 1] >= 0) top--;
+  while (bot < CH - 1 && runL[bot + 1] >= 0) bot++;
+  const halves: number[] = [];
+  for (let y = Math.round(top + 0.4 * (bot - top)); y <= bot; y++) halves.push((runR[y] - runL[y]) / 2);
+  halves.sort((a, b) => a - b);
+  const half = halves.length ? halves[halves.length >> 1] : 0.4 * W;
+  const Lc = (y: number) => { const yy = Math.min(bot, Math.max(top, y)); return Math.max(runL[yy], Math.round(300 - 1.2 * half)); };
+  const Rc = (y: number) => { const yy = Math.min(bot, Math.max(top, y)); return Math.min(runR[yy], Math.round(300 + 1.2 * half)); };
+  const arm = new Uint8Array(CW * CH);
+  const shoulder: Record<Hand, Px> = { R: { x: Math.round(300 - 0.8 * half), y: Math.round(top + 0.12 * (bot - top)) }, L: { x: Math.round(300 + 0.8 * half), y: Math.round(top + 0.12 * (bot - top)) } };
+  for (const side of ["R", "L"] as Hand[]) {
+    const inside = (x: number, y: number) => (side === "R" ? x < Lc(y) - 1 : x > Rc(y) + 1);
+    const q: number[] = [];
+    const yEnd = Math.min(CH - 1, bot + 120);                       // also catches hand dots drawn apart from the arm
+    for (let y = top; y <= yEnd; y++) for (let x = 0; x < CW; x++) if (inside(x, y) && A(x, y) && !arm[y * CW + x]) { arm[y * CW + x] = 1; q.push(y * CW + x); }
+    let minY = CH;
+    for (let k = 0; k < q.length; k++) {
+      const i = q[k], x = i % CW, y = (i - x) / CW;
+      if (y < minY) minY = y;
+      for (const [nx, ny] of [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]]) {
+        if (nx < 0 || ny < top || nx >= CW || ny >= CH) continue;
+        const j = ny * CW + nx;
+        if (!arm[j] && A(nx, ny) && inside(nx, ny)) { arm[j] = 1; q.push(j); }
+      }
+    }
+    if (q.length > 50) shoulder[side] = { x: side === "R" ? Lc(minY) + Math.round(0.12 * half) : Rc(minY) - Math.round(0.12 * half), y: minY + 4 };
+  }
+  return { arm, shoulder };
+};
+
+// One layer: erase arms / cut at the hips, recolour the black ink to warm brown, upscale 2x, add a soft outline
+// that is thick on the lower right (shadow side) and thin on the upper left (lit side).
+const makeLayer = (src: HTMLCanvasElement, o: { erase?: Uint8Array; cut?: number; thin: number; thick: number; rim?: { k: number; w: number } }) => {
+  const c1 = mkCanvas(CW, CH), g1 = c1.getContext("2d", { willReadFrequently: true })!;
+  g1.drawImage(src, 0, 0);
+  const id = g1.getImageData(0, 0, CW, CH), d = id.data;
+  for (let i = 0; i < CW * CH; i++) {
+    const y = (i / CW) | 0;
+    if ((o.erase && o.erase[i]) || (o.cut !== undefined && y >= o.cut)) { d[i * 4 + 3] = 0; continue; }
+    const r = d[i * 4], g = d[i * 4 + 1], b = d[i * 4 + 2], lum = 0.3 * r + 0.59 * g + 0.11 * b;
+    if (lum < 95) { const k = Math.min(1, (95 - lum) / 55); d[i * 4] = r + (42 - r) * k; d[i * 4 + 1] = g + (26 - g) * k; d[i * 4 + 2] = b + (30 - b) * k; }
+  }
+  g1.putImageData(id, 0, 0);
+  const c2 = mkCanvas(CW * SS, CH * SS), g2 = c2.getContext("2d")!;
+  g2.imageSmoothingEnabled = true; g2.imageSmoothingQuality = "high";
+  if (o.thick > 0) {
+    const m = mkCanvas(CW * SS, CH * SS), gm = m.getContext("2d")!;
+    gm.imageSmoothingEnabled = true; gm.imageSmoothingQuality = "high";
+    gm.drawImage(c1, 0, 0, CW * SS, CH * SS); gm.globalCompositeOperation = "source-in"; gm.fillStyle = INK_BROWN; gm.fillRect(0, 0, m.width, m.height);
+    const ol = mkCanvas(CW * SS, CH * SS), go = ol.getContext("2d")!;
+    const th0 = (50 * Math.PI) / 180;                                    // thickest toward the lower right
+    for (let k = 0; k < 28; k++) {
+      const th = (k / 28) * Math.PI * 2, r = (o.thin + (o.thick - o.thin) * Math.pow(Math.max(0, Math.cos(th - th0)), 1.3)) * SS;
+      for (const f of [1, 0.5]) go.drawImage(m, Math.cos(th) * r * f, Math.sin(th) * r * f);
+    }
+    g2.filter = `blur(${1.2 * SS}px)`; g2.drawImage(ol, 0, 0); g2.filter = "none";
+  }
+  g2.drawImage(c1, 0, 0, CW * SS, CH * SS);
+  // v4 rim light (reference 16.6): a thin cream line just inside the outline on the lit side (light from the upper left).
+  // Band = pixels inside the shape whose point k px up-left is inside and whose point k+w px up-left is outside.
+  if (o.rim) {
+    const m = mkCanvas(CW * SS, CH * SS), gm = m.getContext("2d")!;
+    gm.imageSmoothingEnabled = true; gm.drawImage(c1, 0, 0, CW * SS, CH * SS);
+    const rc = mkCanvas(CW * SS, CH * SS), gr = rc.getContext("2d")!;
+    const dx = 0.62, dy = 0.78, k = o.rim.k * SS, w = o.rim.w * SS;
+    gr.drawImage(m, 0, 0);
+    gr.globalCompositeOperation = "destination-in"; gr.drawImage(m, dx * k, dy * k);
+    gr.globalCompositeOperation = "destination-out"; gr.drawImage(m, dx * (k + w), dy * (k + w));
+    gr.globalCompositeOperation = "source-in"; gr.fillStyle = "#FFF1D8"; gr.fillRect(0, 0, rc.width, rc.height);
+    g2.save(); g2.globalAlpha = 0.85; g2.filter = `blur(${0.6 * SS}px)`; g2.drawImage(rc, 0, 0); g2.restore();
+  }
+  return c2;
+};
+
+const castCache = new Map<string, CastTex>();
+export const buildCast = (imgs: Record<string, HTMLImageElement>, who: string): CastTex => {
+  const hit = castCache.get(who); if (hit) return hit;
+  const body = clean1x(imgs.body), heads1 = Object.fromEntries(FACE_LIST.map((f) => [f, clean1x(imgs[`${who}_${f}`])])) as Record<Face, HTMLCanvasElement>;
+  const W = headWidth(heads1.neutral);
+  const { arm, shoulder } = analyseBody(body, W);
+  const thin = 0.012 * W, thick = 0.065 * W, bThick = 0.035 * W, tThin = 0.012 * W, tThick = 0.03 * W;
+  const tf = clean1x(imgs[`${who}_torso_front`]), tb = clean1x(imgs[`${who}_torso_back`]), hb = clean1x(imgs[`${who}_back`]);
+  const rim = { k: 0.026 * W, w: 0.009 * W };
+  // hat: erase the hair above the brim (the hat's mask picture) from every head layer, then draw the hat as its own layer
+  let hatErase: Uint8Array | undefined;
+  if (imgs[`${who}_hat_mask`]) {
+    const mc = mkCanvas(CW, CH), gm = mc.getContext("2d", { willReadFrequently: true })!; gm.drawImage(imgs[`${who}_hat_mask`], 0, 0, CW, CH);
+    const md = gm.getImageData(0, 0, CW, CH).data; hatErase = new Uint8Array(CW * CH);
+    for (let i = 0; i < CW * CH; i++) hatErase[i] = md[i * 4 + 3] > 128 ? 1 : 0;
+  }
+  // shoulders: on the shirt's top corners, a little below the chin, so the arm starts on the shirt and never under the head
+  const sy = Math.min(HIP - 60, headBottom(heads1.neutral) + Math.round(0.05 * W));
+  const run = rowRun(tf, sy, arm) ?? rowRun(body, sy, arm);
+  if (run) {
+    const half = (run.r - run.l) / 2;
+    shoulder.R = { x: Math.round(run.l + 0.18 * half), y: sy };
+    shoulder.L = { x: Math.round(run.r - 0.18 * half), y: sy };
+  } else {
+    shoulder.R = { ...shoulder.R, y: Math.max(shoulder.R.y, sy) };
+    shoulder.L = { ...shoulder.L, y: Math.max(shoulder.L.y, sy) };
+  }
+  const both = (src: HTMLCanvasElement, a: number, b: number) => ({
+    seated: tex(makeLayer(src, { erase: arm, cut: HIP, thin: a, thick: b, rim })),
+    standing: tex(makeLayer(src, { erase: arm, thin: a, thick: b, rim })),
+  });
+  const out: CastTex = {
+    body: both(body, thin, bThick), torsoF: both(tf, tThin, tThick), torsoB: both(tb, tThin, tThick),
+    heads: Object.fromEntries(FACE_LIST.map((f) => [f, tex(makeLayer(heads1[f], { thin, thick, erase: hatErase, rim }))])) as Record<Face, THREE.Texture>,
+    headBack: tex(makeLayer(hb, { thin, thick, erase: hatErase, rim })), shoulder, W,
+    hatF: imgs[`${who}_hat_front`] ? tex(makeLayer(clean1x(imgs[`${who}_hat_front`]), { thin, thick: 0.045 * W, rim })) : undefined,
+    hatB: imgs[`${who}_hat_back`] ? tex(makeLayer(clean1x(imgs[`${who}_hat_back`]), { thin, thick: 0.045 * W, rim })) : undefined,
+  };
+  castCache.set(who, out);
+  return out;
+};
+
+const cardGeo = new THREE.PlaneGeometry(CW * PXM, CH * PXM);
+// blue sweat drop (reference 16.7)
+let dropTex: THREE.Texture | null = null;
+const sweatTex = () => {
+  if (dropTex) return dropTex;
+  const c = mkCanvas(80, 112), g = c.getContext("2d")!;
+  g.beginPath(); g.moveTo(40, 6); g.bezierCurveTo(52, 34, 72, 56, 70, 76); g.bezierCurveTo(68, 98, 52, 106, 40, 106); g.bezierCurveTo(28, 106, 12, 98, 10, 76); g.bezierCurveTo(8, 56, 28, 34, 40, 6); g.closePath();
+  g.fillStyle = "#6EC6F2"; g.fill(); g.lineWidth = 6; g.strokeStyle = "#2A1A1E"; g.lineJoin = "round"; g.stroke();
+  g.fillStyle = "rgba(255,255,255,.85)"; g.beginPath(); g.ellipse(30, 74, 6, 12, 0.3, 0, 7); g.fill();
+  dropTex = tex(c); return dropTex;
+};
+const dropGeo = new THREE.PlaneGeometry(40 * PXM, 56 * PXM);
+const DROPS: [number, number, number][] = [[478, 255, 0], [505, 330, 0.33], [112, 300, 0.66]];   // picture x, y, phase
+const handGeo = new THREE.CircleGeometry(HAND_DISC, 28);
+const capGeo = new THREE.CircleGeometry(ARM_HW, 14);
+const INK = new THREE.Color(INK_BROWN);
+// one flat ribbon: ARM_SEG+1 pairs of vertices, rebuilt in place every frame
+const ribbonGeo = () => {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(new Float32Array((ARM_SEG + 1) * 6), 3));
+  const idx: number[] = [];
+  for (let i = 0; i < ARM_SEG; i++) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  g.setIndex(idx); return g;
+};
+
+export class Player {
+  group = new THREE.Group();
+  hand: Record<Hand, V3> = { L: [0, 0, 0], R: [0, 0, 0] };
+  readonly R: V3;                                  // the character's right, world
+  private pivot: THREE.Vector3; private row: number; private tilt: number;
+  private meshes: THREE.Mesh[] = []; private mats: THREE.MeshBasicMaterial[] = [];
+  private drops: THREE.Mesh[] = []; private dropMat = new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide });
+  private seed: number;
+  private arms: Record<Hand, { tube: THREE.Mesh; dot: THREE.Mesh; cap: THREE.Mesh }>;
+  private armMat = new THREE.MeshBasicMaterial({ color: INK_BROWN, side: THREE.DoubleSide });
+  private camPos = new THREE.Vector3();
+  private v = new THREE.Vector3(); private tmp = new THREE.Vector3();
+
+  readonly life: Life; readonly tableY: number;
+  // parent: where to add it; cast: buildCast(imgs, name); who: the name; pivot: hip point (seated) or feet point (standing);
+  // facing: +1 looks toward +z, -1 toward -z; seated: sits on a chair (hands rest on a table at opts.tableY).
+  // opts.life = makeLife(faces, sweat) for face changes; opts.seed changes the idle sway so two people do not move the same.
+  constructor(parent: THREE.Object3D, private cast: CastTex, readonly who: string, pivot: V3, readonly facing: 1 | -1, readonly seated: boolean,
+    opts: { life?: Life; seed?: number; tableY?: number } = {}) {
+    this.life = opts.life ?? makeLife([]); this.tableY = opts.tableY ?? 0.78;
+    this.pivot = new THREE.Vector3(...pivot); this.row = seated ? HIP : SOLE;
+    this.tilt = seated ? NECK : SOLE;                  // the card tilts about this picture row (neck when seated, feet when standing)
+    this.R = [-facing, 0, 0];
+    this.group.position.copy(this.pivot); this.group.position.y += (this.row - this.tilt) * PXM; parent.add(this.group);
+    const cy = (this.tilt - CH / 2) * PXM;
+    this.seed = opts.seed ?? 0.4;
+    ["body", "torso", "headA", "headB", "hat"].forEach((_, i) => {
+      const mat = new THREE.MeshBasicMaterial({ transparent: true, alphaTest: 0.04, depthWrite: i < 3, side: THREE.DoubleSide });
+      const m = new THREE.Mesh(cardGeo, mat);
+      m.position.set(0, cy, 0.003 * i); m.frustumCulled = false; m.layers.set(NOINK);
+      this.group.add(m); this.meshes.push(m); this.mats.push(mat);
+    });
+    this.dropMat.map = sweatTex();
+    for (let k = 0; k < DROPS.length; k++) {
+      const m = new THREE.Mesh(dropGeo, this.dropMat); m.frustumCulled = false; m.layers.set(NOINK); m.visible = false;
+      this.group.add(m); this.drops.push(m);
+    }
+    const mk = () => {
+      const tube = new THREE.Mesh(ribbonGeo(), this.armMat); tube.frustumCulled = false; tube.layers.set(NOINK);
+      const dot = new THREE.Mesh(handGeo, this.armMat); dot.frustumCulled = false; dot.layers.set(NOINK);
+      const cap = new THREE.Mesh(capGeo, this.armMat); cap.frustumCulled = false; cap.layers.set(NOINK);
+      parent.add(tube, dot, cap); return { tube, dot, cap };
+    };
+    this.arms = { L: mk(), R: mk() };
+  }
+
+  // rest hands: on the table (seated) or hanging at the sides (standing)
+  restHand(h: Hand): V3 {
+    const s = h === "R" ? 1 : -1, p = this.pivot, f = this.facing;
+    return this.seated
+      ? [p.x + this.R[0] * 0.2 * s, this.tableY + HAND_R + 0.002, p.z + f * 0.43]
+      : [p.x + this.R[0] * 0.21 * s, p.y + 0.42, p.z + f * 0.1];
+  }
+
+  shoulderWorld(h: Hand, out: THREE.Vector3) {
+    const sp = this.cast.shoulder[h];
+    const offX = (300 - sp.x) * PXM, offY = (this.tilt - sp.y) * PXM;  // body-fixed: along the character's right, and up
+    const yaw = this.group.rotation.y;
+    const hx = this.R[0] * offX, hz = this.R[2] * offX;
+    const a = hx * Math.cos(yaw) - hz * Math.sin(yaw);                 // component along the card's local x
+    const b = hx * Math.sin(yaw) + hz * Math.cos(yaw);                 // component toward the camera
+    out.set(a, offY, b - 0.006);                                       // just behind the body card: the arm comes out from behind it
+    return this.group.localToWorld(out);
+  }
+
+  update(t: number, cam: THREE.Camera, night: number, order: number) {
+    // billboard: yaw toward the camera, tilt back (limited) when the camera is above, so no paper edge ever shows
+    const cy = (this.tilt - CH / 2) * PXM;
+    const d = this.v.copy(cam.position).sub(this.tmp.copy(this.group.position).setY(this.group.position.y + cy));
+    const hz = Math.hypot(d.x, d.z) || 1e-6;
+    const yaw = Math.atan2(d.x, d.z), pitch = Math.min(this.seated ? 0.45 : 0.75, Math.max(-0.15, Math.atan2(d.y, hz)));
+    this.group.rotation.set(-pitch, yaw, 0, "YXZ");
+    const c = (this.facing * d.z) / hz;                                // +1 = camera in front of the character
+    const s = this.facing * -Math.sin(yaw);                            // facing direction along the card's x (screen right)
+    const front = c >= 0;
+    this.group.scale.set(0.62 + 0.38 * smooth(0, 0.5, Math.abs(c)), 1, 1);
+    this.group.updateMatrixWorld(true);
+    // layer slide (skill 6.9)
+    const Wm = this.cast.W * PXM, dir = front ? 1 : -0.5;
+    const [, torso, hA, hB, hat] = this.meshes;
+    torso.position.x = 0.035 * Wm * s * dir;
+    torso.scale.x = 1.12;                                              // shirt covers the bare body's sides
+    // v4 idle life: a slow head tilt and sway so nobody is frozen (reference 16.7); the hat and drops ride with the head
+    const tilt = 0.03 * Math.sin(t * 1.25 + this.seed * 3) + 0.015 * Math.sin(t * 0.53 + this.seed);
+    const headX = 0.06 * Wm * s * dir + 0.004 * Math.sin(t * 0.9 + this.seed * 5);
+    for (const m of [hA, hB, hat]) {
+      m.rotation.z = tilt;
+      m.position.x = headX;                                           // the card centre (picture row 500) is at the neck, so it pivots there
+      m.position.y = cy + 0.002 * Math.sin(t * 1.7 + this.seed);
+    }
+    hA.scale.x = hB.scale.x = hat.scale.x = 1 - 0.12 * Math.abs(s);
+    // textures
+    const v = this.seated ? "seated" : "standing";
+    const [mb, mt, ma, mbb] = this.mats;
+    mb.map = this.cast.body[v];
+    mt.map = front ? this.cast.torsoF[v] : this.cast.torsoB[v];
+    if (front) {
+      const fm = this.life.face(t);
+      ma.map = this.cast.heads[fm.k >= 1 ? fm.to : fm.from];
+      mbb.map = this.cast.heads[fm.to]; mbb.opacity = fm.k; hB.visible = fm.k > 0 && fm.k < 1;
+    } else { ma.map = this.cast.headBack; hB.visible = false; }
+    const hatT = front ? this.cast.hatF : (this.cast.hatB ?? this.cast.hatF);
+    hat.visible = !!hatT; if (hatT) this.mats[4].map = hatT;
+    hat.position.z = 0.012;
+    // sweat drops: slide down and fade in a loop while sweatAt > 0, only when the face is shown
+    const sw = front ? this.life.sweat(t) : 0;
+    this.drops.forEach((m, k) => {
+      const [px, py, ph] = DROPS[k];
+      const u = ((t * 1.1 + ph) % 1);
+      m.visible = sw > 0.02;
+      if (!m.visible) return;
+      const sc = sw * (u < 0.15 ? u / 0.15 : 1) * (1 - 0.2 * u);
+      m.scale.set(sc, sc, 1);
+      m.position.set(headX + (px - 300) * PXM * hA.scale.x, cy + (CH / 2 - py) * PXM - 0.03 * u, 0.016);
+    });
+    for (const m of [...this.mats, this.dropMat]) m.color.setRGB(1 - 0.5 * night, 1 - 0.42 * night, 1 - 0.1 * night);
+    this.armMat.color.setRGB(INK.r * (1 - 0.5 * night), INK.g * (1 - 0.42 * night), INK.b * (1 - 0.1 * night));
+    this.meshes.forEach((m, i) => { m.renderOrder = order + i; });
+    for (const m of this.drops) m.renderOrder = order + 6;
+    // arms: flat ink strokes from the shoulder to the hand, always turned to the camera; the hand disc is centred
+    // exactly on this.hand (so a held piece sits on it), nudged 3 mm toward the camera so it covers the stroke's end
+    cam.getWorldPosition(this.camPos);
+    for (const h of ["L", "R"] as Hand[]) {
+      const S = this.shoulderWorld(h, new THREE.Vector3()), H = new THREE.Vector3(...this.hand[h]);
+      const C = S.clone().lerp(H, 0.5); C.y -= 0.035;
+      const curve = new THREE.QuadraticBezierCurve3(S, C, H);
+      const arm = this.arms[h], pos = arm.tube.geometry.getAttribute("position") as THREE.BufferAttribute;
+      const side = new THREE.Vector3(1, 0, 0), T = new THREE.Vector3(), V = new THREE.Vector3(), P = new THREE.Vector3(), n = new THREE.Vector3();
+      for (let i = 0; i <= ARM_SEG; i++) {
+        const u = i / ARM_SEG;
+        curve.getPoint(u, P); curve.getTangent(u, T);
+        V.copy(this.camPos).sub(P).normalize();
+        n.crossVectors(T, V);
+        if (n.lengthSq() > 1e-8) side.copy(n.normalize());               // keep the last side if the arm points at the camera
+        pos.setXYZ(i * 2, P.x + side.x * ARM_HW, P.y + side.y * ARM_HW, P.z + side.z * ARM_HW);
+        pos.setXYZ(i * 2 + 1, P.x - side.x * ARM_HW, P.y - side.y * ARM_HW, P.z - side.z * ARM_HW);
+      }
+      pos.needsUpdate = true; arm.tube.geometry.computeBoundingSphere();
+      arm.cap.position.copy(S); arm.cap.quaternion.copy(cam.quaternion);
+      V.copy(this.camPos).sub(H).normalize();
+      arm.dot.position.copy(H).addScaledVector(V, 0.003); arm.dot.quaternion.copy(cam.quaternion);
+    }
+  }
+}
