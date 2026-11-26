@@ -23,7 +23,7 @@ import {
 
 // who is who: main cast + extras (base = the library head they use). Hats come with the outfit (pilot: hat_max, general: hat_omar).
 export const CAST: Cast3DSpec = {
-  max: { outfit: "pilot" }, arian: { outfit: "suit" }, omar: { outfit: "general", pictureFaces: true }, ava: { outfit: "dress", skin: [110, 68, 46], rig: { skin: "#6E442E", ink: "#150C0C" } },   // fix7: dark skin set (as in bank2), so her drawn face sits on her head (it floated off before)
+  max: { outfit: "pilot" }, arian: { outfit: "suit" }, omar: { outfit: "general", pictureFaces: true }, ava: { outfit: "dress", skin: [110, 68, 46], rig: { skin: "#6E442E", ink: "#150C0C", lashes: 1, fixed: true } },   // fix7: dark skin set (as in bank2), so her drawn face sits on her head (it floated off before)
   crew1: { outfit: "pilot", base: "minh" }, crew2: { outfit: "pilot", base: "minh2" }, crew3: { outfit: "pilot", base: "minh3" }, crew4: { outfit: "pilot", base: "cop", pictureFaces: true },
   gen1: { outfit: "general", base: "cop", pictureFaces: true }, gen2: { outfit: "general", base: "minh2" },
   mech1: { outfit: "farmer", base: "minh" }, mech2: { outfit: "casual", base: "minh3" },
@@ -442,7 +442,7 @@ export class BomberWorld implements World {
     const ava = P.ava, avaStart = A(DINER, 2.4, 0, 2.2), avaEnd = A(DINER, 0.2, 0, 1.2);   // fix7: was (1.6,-2.6) -> (-0.35,-0.5), behind the table
     walk(ava, avaStart, avaEnd, 43.3, 44.9, [-0.55, 1]);   // fix7b: turned toward the camera (her back showed)
     { const L = ava.lookDir(), r = ava.R, pv = t < 44.9 ? lerpV(avaStart, avaEnd, Math.max(0, Math.min(1, (t - 43.3) / 1.6))) : avaEnd;
-      const cb: V3 = [pv[0] + L.x * 0.17 - r[0] * 0.07, 0.66, pv[2] + L.z * 0.17 - r[2] * 0.07]; ava.hand.L = cb;
+      const cb: V3 = [pv[0] + L.x * 0.17 - r[0] * 0.07, 0.56, pv[2] + L.z * 0.17 - r[2] * 0.07]; ava.hand.L = cb;   // fix7d: clipboard held lower (the arm line crossed her chin)
       this.clip.position.set(...cb); this.clip.rotation.set(-0.9, Math.atan2(L.x, L.z), 0);
       if (t > 45.0 && t < 46.5) ava.hand.R = [cb[0] + r[0] * 0.04 + 0.02 * Math.sin(t * 15), cb[1] + 0.04, cb[2] + r[2] * 0.04];
       ava.lookEyes(head(this.diners[2].p), 0.7); }

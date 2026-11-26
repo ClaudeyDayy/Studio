@@ -32,3 +32,4 @@
 2026-11-26T02:44:48.685Z  [700,715]  2 frames in 0.2 min | first frame 8.0 s | then 1.50 s/frame | GPU ANGLE (Mesa, Vulkan 1.4.335 (llvmpipe (LLVM 20.1.2 256 bits) (0x00000000)), llvmpipe)
 2026-11-26T02:45:56.525Z  [690,700]  2 frames in 0.2 min | first frame 8.3 s | then 1.38 s/frame | GPU ANGLE (Mesa, Vulkan 1.4.335 (llvmpipe (LLVM 20.1.2 256 bits) (0x00000000)), llvmpipe)
 2026-11-26T02:47:07.846Z  [674,690,700]  3 frames in 0.2 min | first frame 9.8 s | then 1.31 s/frame | GPU ANGLE (Mesa, Vulkan 1.4.335 (llvmpipe (LLVM 20.1.2 256 bits) (0x00000000)), llvmpipe)
+2026-11-26T02:51:13.789Z  [1374]  1 frames in 0.1 min | first frame 8.8 s | then 8.83 s/frame | GPU ANGLE (Mesa, Vulkan 1.4.335 (llvmpipe (LLVM 20.1.2 256 bits) (0x00000000)), llvmpipe)

@@ -449,7 +449,7 @@ export class Player3D {
       if (F.top) g.drawImage(F.top, 0, 0);
       this.faceTex!.needsUpdate = true;
       // the face slides toward the side he faces (reference: 0.07-0.15 head widths)
-      this.faceMesh.position.x = (F.head.cx - CW / 2) * PXM + 0.12 * Wm * s;
+      this.faceMesh.position.x = (F.head.cx - CW / 2) * PXM + (F.rig.fixed ? 0 : 0.12 * Wm * s);   // rig.fixed (2026-11-26): no slide, glasses stay over the eyes
       hsx = ff.sx; hsy = ff.sy; hrot = ff.rot;
       this.faceMesh.renderOrder = order + 2.5;
     } else if (front) {

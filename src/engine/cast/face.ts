@@ -26,6 +26,8 @@ export type FaceRig = {
   line: number;                                             // face line width (head radius units)
   ink: string; skin: string; mouthInk: string; tongue: string; teeth: string;
   brows: boolean;                                           // false = brows only appear when an expression needs them
+  lashes?: number;                                          // 2026-11-26 opt-in: small lashes at the outer eye corners (size, about 1)
+  fixed?: boolean;                                          // 2026-11-26 opt-in: the face does not slide or lean (glasses drawn on the head stay over the eyes)
 };
 
 export const DEFAULT_RIG: FaceRig = {
@@ -243,7 +245,7 @@ export function faceAt(track: FaceKey[], t: number, o: FaceOpts = {}): FaceFrame
 export function drawFace(ctx: CanvasRenderingContext2D, f: FaceState, cx: number, cy: number, R: number, rig: FaceRig = DEFAULT_RIG) {
   const lw = rig.line * R;
   ctx.save();
-  ctx.translate(cx + (f.dx + 0.04 * f.look) * R, cy + f.dy * R);
+  ctx.translate(cx + (f.dx + (rig.fixed ? 0 : 0.04 * f.look)) * R, cy + f.dy * R);
   ctx.lineCap = "round"; ctx.lineJoin = "round";
   const path = (up: Pt[], lo: Pt[], ox: number, oy: number, sx: number, sy: number) => {
     ctx.beginPath();
@@ -280,6 +282,13 @@ export function drawFace(ctx: CanvasRenderingContext2D, f: FaceState, cx: number
     ctx.strokeStyle = rig.ink; ctx.lineWidth = lw;
     path(e.up, e.lo, ox, oy, sx, sy);
     ctx.stroke();
+    // lashes (opt-in): two short flicks from the outer end of the upper lid
+    if (rig.lashes && rig.lashes > 0) {
+      const outer = e.up.reduce((b, p) => (side * p[0] > side * b[0] ? p : b), e.up[0]);
+      const bx = (ox + outer[0] * sx) * R, by = (oy + outer[1] * sy) * R, L = 0.085 * rig.lashes * R;
+      ctx.lineWidth = lw * 0.8;
+      for (const [dx, dy] of [[0.95, -0.35], [0.6, -0.85]]) { ctx.beginPath(); ctx.moveTo(bx - side * 0.15 * L, by); ctx.lineTo(bx + side * dx * L, by + dy * L); ctx.stroke(); }
+    }
   }
 
   // brows
