@@ -95,6 +95,8 @@ Brainstorm ideas that follow the reference's virality rules. About 60 s, 9:16.
 - When he says "keep it for the next videos": change the number in `src/house/look.ts` and add a line to its LOG.
 
 ## 9. Studio safety
+- **BACKUP FIRST (his rule, 2026-11-26):** before starting a new video, or any big change, copy the whole studio to a backup folder
+  (e.g. `F:\OLD STUDIO\backups\studio-<date>-before-<what>`) and check the copy is there. Then start.
 - Old videos must render exactly the same. New features are opt-in (`final: true`).
 - Copy an engine file before changing it: `src/videos/_old/<file>-before-<what>.<ext>`.
 - Edit files in place; never retype a whole file.
