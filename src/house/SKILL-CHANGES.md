@@ -26,3 +26,9 @@ FINAL: 2026-11-16 STOPPED EARLY (session ran out). Done: flaw 2 only. Drafts NOT
 - 2026-11-26  TINA has no face.json: as a drawn face her face floats off the head. Use pictureFaces: true (her own pictures) for any tina-based extra.
 - 2026-11-26  DINER WALLS (opt-in, moreplaces.ts): fantasyDiner({ walls: "#colour" }) adds a back wall with the door in it.
 - 2026-11-26  WALK TURNS: a walk that ends facing another way turns smoothly (about 0.4 s), never in one frame.
+
+## Blender bridge (2026-11-26)
+- Export: `node src/engine/export-blender.mjs src/videos/<video> 0-89` -> out\blender-<video>\*.glb + .json (one baked clip, camera = ShotCam, fov per frame in json).
+- Import in Blender: blender_import.py bridge_load(glb, save_as). Needs a window context for the glTF importer (temp_override), run it from a timer when called over the bridge.
+- Imported sun comes in at ~0.01 power and there is no world: add sun + sky before judging. Lit hole decals glow stronger in Blender.
+- Long Blender jobs over the bridge: queue them with bpy.app.timers and poll a log file (the bridge times out otherwise).
