@@ -306,6 +306,7 @@ function check(step = 2, clear = 0.3) {
 const w = window as any;
 w.check = check;
 w.renderFrame = renderFrame;
+w.whiteOf = (f: number) => whiteAt(f / FPS);   // 2026-11-26: lets the blank-frame guard tell a planned white flash from a black GPU frame
 w.grab = (f: number, fmt: string) => {
   renderFrame(f);
   return fmt === "png" ? out.toDataURL("image/png") : out.toDataURL("image/jpeg", 0.95);
