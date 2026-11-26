@@ -32,7 +32,7 @@ export const ENGINE_LOOK: V3 = A(FIELD, -6.8, 1.9, -5.0);
 export const WALD_DESK: V3 = A(OFFICE, 1.0, 0, -1.95);  // seated behind the desk, facing the camera (+z)
 export const WALD_BOARD: V3 = A(OFFICE, -2.35, 0, -1.7);// standing at the chalkboard's left end
 export const LAMP: V3 = A(OFFICE, 1.62, 1.12, -1.4);
-export const MODEL_DESK: V3 = A(OFFICE, 1.15, 0.81, -1.0), MODEL_UP: V3 = A(OFFICE, 1.42, 1.14, -1.5);
+export const MODEL_DESK: V3 = A(OFFICE, 0.82, 0.81, -1.05), MODEL_UP: V3 = A(OFFICE, 1.42, 1.14, -1.5);
 // chalkboard in the office: centre, and where the drawn engines / cockpit are (board local units -> metres: 0.00867)
 export const BOARD_C: V3 = A(OFFICE, -1.4, 1.6, -2.43);
 export const BOARD_MARKS: V3[] = [[-62, -6], [-32, -6], [32, -6], [62, -6], [0, -50]].map(([x, y]) => A(BOARD_C, x * 0.00867, -y * 0.00867, 0.01));

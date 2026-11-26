@@ -228,7 +228,7 @@ const FANTASY_FS = "varying vec3 vP; void main(){ vec3 d = normalize(vP); float 
   " if (d.y < 0.0) c = vec3(0.94,0.48,0.78); gl_FragColor = vec4(c, 1.0); }";
 /** The fantasy space (his palette): violet -> magenta -> hot-pink sky dome, a huge pale pink moon, stars, a cobalt floor,
  *  round tables with white cloths and chairs, string lights on poles, a counter, and a lone open door to the dark at the back. */
-export function fantasyDiner(o: { tables?: number } = {}) {
+export function fantasyDiner(o: { tables?: number; walls?: string } = {}) {   // walls: colour of a back wall round the door (opt-in, 2026-11-26)
   const G = new THREE.Group(); G.name = "fantasyDiner"; G.userData.indoor = true;
   const dome = new THREE.Mesh(new THREE.SphereGeometry(120, 32, 16), new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: true, vertexShader: FANTASY_VS, fragmentShader: FANTASY_FS }));
   dome.name = "fantasySky"; dome.userData.camFree = true; dome.userData.noShadow = true; G.add(noInk(dome));
@@ -255,6 +255,11 @@ export function fantasyDiner(o: { tables?: number } = {}) {
   G.add(bx(0.12, 1.75, 0.15, "#F4EFE6", doorAt[0] - 0.46, 0.875, doorAt[2], "doorFrame")); G.add(bx(0.12, 1.75, 0.15, "#F4EFE6", doorAt[0] + 0.46, 0.875, doorAt[2], "doorFrame")); G.add(bx(1.04, 0.12, 0.15, "#F4EFE6", doorAt[0], 1.81, doorAt[2], "doorFrame"));
   const dark = mk(new THREE.PlaneGeometry(0.8, 1.7), new THREE.MeshBasicMaterial({ color: "#1A0F3A" }), doorAt[0], 0.86, doorAt[2] - 0.01, "doorDark"); dark.castShadow = false; G.add(dark);
   const leaf = bx(0.78, 1.68, 0.05, "#8E2F2B", 0, 0.84, 0.39, "doorLeaf"); const hinge = new THREE.Group(); hinge.position.set(doorAt[0] - 0.4, 0, doorAt[2]); hinge.rotation.y = -1.2; leaf.position.set(0.39, 0.84, 0); hinge.add(leaf); G.add(hinge);
+  if (o.walls) {   // a back wall with the door in it (old videos: no wall, the door stands alone)
+    const H = 2.6, x0 = -7.5, x1 = 7.5, gl = doorAt[0] - 0.52, gr = doorAt[0] + 0.52, gt = 1.87, z = doorAt[2] - 0.02;
+    G.add(bx(gl - x0, H, 0.14, o.walls, (x0 + gl) / 2, H / 2, z, "backWall")); G.add(bx(x1 - gr, H, 0.14, o.walls, (gr + x1) / 2, H / 2, z, "backWall"));
+    G.add(bx(gr - gl, H - gt, 0.14, o.walls, doorAt[0], (gt + H) / 2, z, "backWall"));
+  }
   return { group: G, tables, seats: spots, owner: [3.6, 0, -5.8] as V3, door: doorAt, beyondDoor: [doorAt[0], 0, doorAt[2] - 6] as V3 };
 }
 

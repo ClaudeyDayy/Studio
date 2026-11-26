@@ -10,6 +10,9 @@ import { LIGHTS } from "../../engine/core/lights";
 import { Outdoor, castAll, headShadows } from "../../engine/outdoor";
 import { Player3D, buildCast3d, loadCast3d, Cast3DSpec, Cast3DAssets } from "../../engine/cast/player3d";
 import { makeLife, FaceEv } from "../../engine/cast/life";
+import { makeTalk } from "../../engine/core/talk";
+import type { Word } from "../../engine/core/captions";
+import words from "./words.json";
 import type { FaceKey } from "../../engine/cast/face";
 import { ground } from "../../engine/places";
 import { MR, mkCanvas, canvasTex, noInk, noInkAll } from "../../engine/kit";
@@ -24,13 +27,13 @@ import {
 // who is who: main cast + extras (base = the library head they use). Hats come with the outfit (pilot: hat_max, general: hat_omar).
 export const CAST: Cast3DSpec = {
   max: { outfit: "pilot" }, arian: { outfit: "suit" }, omar: { outfit: "general", pictureFaces: true }, ava: { outfit: "dress", skin: [110, 68, 46], rig: { skin: "#6E442E", ink: "#150C0C", lashes: 1, fixed: true } },   // fix7: dark skin set (as in bank2), so her drawn face sits on her head (it floated off before)
-  crew1: { outfit: "pilot", base: "minh" }, crew2: { outfit: "pilot", base: "minh2" }, crew3: { outfit: "pilot", base: "minh3" }, crew4: { outfit: "pilot", base: "cop", pictureFaces: true },
+  crew1: { outfit: "pilot", base: "minh", back: "back-straight" }, crew2: { outfit: "pilot", base: "minh2" }, crew3: { outfit: "pilot", base: "minh3", back: "back-straight" }, crew4: { outfit: "pilot", base: "cop", pictureFaces: true },
   gen1: { outfit: "general", base: "cop", pictureFaces: true }, gen2: { outfit: "general", base: "minh2" },
-  mech1: { outfit: "farmer", base: "minh" }, mech2: { outfit: "casual", base: "minh3" },
-  din1: { outfit: "casual", base: "tina" }, din2: { outfit: "hoodie", base: "nora" }, din3: { outfit: "luckytee", base: "minh" },
+  mech1: { outfit: "farmer", base: "minh", back: "back-straight" }, mech2: { outfit: "casual", base: "minh3", back: "back-straight" },
+  din1: { outfit: "casual", base: "tina", pictureFaces: true }, din2: { outfit: "hoodie", base: "nora" }, din3: { outfit: "luckytee", base: "minh", back: "back-straight" },
   // new extras for the real timing (same outfits and heads as above, already in public\library)
   col1: { outfit: "suit", base: "minh2" }, col2: { outfit: "suit", base: "cop", pictureFaces: true },   // Wald's two colleagues (S10)
-  din4: { outfit: "casual", base: "minh2" }, din5: { outfit: "hoodie", base: "tina" },                  // the customers who leave (S11)
+  din4: { outfit: "casual", base: "minh2" }, din5: { outfit: "hoodie", base: "tina", pictureFaces: true },                  // the customers who leave (S11)
 };
 export const load = async () => { const [bomber, cast] = await Promise.all([loadBomber(), loadCast3d(CAST)]); return { bomber, cast }; };
 
@@ -50,7 +53,9 @@ type Person = { p: Player3D; who: string };
 const sm = smooth;
 const up = (v: V3, h: number): V3 => [v[0], v[1] + h, v[2]];
 const dist = (a: V3, b: V3) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
-const talkFn = (spans: [number, number][]) => (t: number) => { for (const [a, b] of spans) if (t >= a && t < b) return [1, 3, 2, 4, 1, 3, 5, 2][Math.floor(t * 11) % 8]; return -1; };
+// real talking mouths (2026-11-26, his request): lips follow the narration words, not a random moving smile
+const talkAt = makeTalk(words as Word[], [{ who: "mech1", a: 18.65, b: 20.35 }, { who: "maxG", a: 20.75, b: 22.2 }, { who: "ava", a: 44.75, b: 46.5 }]);
+const talkFn = (key: string) => (t: number) => talkAt(key, t);
 const F = (...k: [number, string][]): FaceKey[] => k.map(([t, e]) => ({ t, e }));
 const flat = (x: number, z: number): [number, number] => [x, z];
 // a hand reaching toward a point, at most `reach` from the shoulder
@@ -129,16 +134,19 @@ export class BomberWorld implements World {
     });
     this.lampLight.position.set(...LAMP);
     this.model = bomber(B, { name: "modelBomber" }); holes(this.model, { wingL: 16, wingR: 10, body: 6, seed: 7, size: 0.9 }); this.model.group.scale.setScalar(0.02); noInkAll(this.model.group); R.add(this.model.group);   // fix8: no ink on the tiny model (a stray outline hung under it)
+    // 2026-11-26 (his note): a sheet under Wald's writing hand (the middle of the desk was cleared)
+    const sheet = new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.004, 0.28), MR("#F2ECDD", 0.9)); sheet.name = "writingPaper"; sheet.receiveShadow = true;
+    sheet.position.set(...A(OFFICE, 0.88, 0.759, -1.5)); sheet.rotation.y = 0.12; R.add(sheet);
     this.pencil = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.12, 6), MR("#E2B23C", 0.5)); this.pencil.name = "pencil"; R.add(this.pencil);
     this.chalk = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.05, 6), MR("#D8352E", 0.8)); this.chalk.name = "redChalk"; R.add(this.chalk);
     // ================= P6 fantasy diner =================
-    const dn = fantasyDiner(); at(dn.group, DINER);
+    const dn = fantasyDiner({ walls: "#9E63C9" }); at(dn.group, DINER);   // 2026-11-26: walls round the door (his note)
     this.clip = this.clipboard(); R.add(this.clip);
     R.updateMatrixWorld(true);
     this.measureWing();
 
     // ================= people =================
-    const person = (who: string, pos: V3, o: { seat?: number; face?: FaceKey[]; life?: FaceEv[]; sweat?: [number, number][]; talk?: [number, number][] } = {}) => {
+    const person = (who: string, pos: V3, o: { seat?: number; face?: FaceKey[]; life?: FaceEv[]; sweat?: [number, number][]; talk?: string } = {}) => {
       const p = new Player3D(R, buildCast3d(Aset.cast, who), who, pos, 1, o.seat !== undefined, {
         seed: 11 + 7 * this.all.length, face: o.face, life: o.life || o.sweat ? makeLife(o.life ?? [], o.sweat ?? []) : undefined, talk: o.talk ? talkFn(o.talk) : undefined });
       if (o.seat !== undefined) { p.sit = 1; p.seatY = o.seat; }
@@ -158,13 +166,13 @@ export class BomberWorld implements World {
     });
     // ground Max (S06, S07b, S15)
     this.P.maxG = person("max", MAX_WING, { face: F([0, "happy"], [21.1, "happy"], [22.3, "smile"], [23.6, "satisfied"], [27.3, "sad"], [28.2, "stressed"], [29.55, "confused"], [31.5, "stressed"], [32.3, "confused"],
-      [56.6, "neutral"], [57.7, "confused"], [59.4, "surprised"], [59.95, "happy"]), sweat: [[27.9, 29.5]], talk: [[20.9, 22.1]] });
+      [56.6, "neutral"], [57.7, "confused"], [59.4, "surprised"], [59.95, "happy"]), sweat: [[27.9, 29.5]], talk: "maxG" });
     // generals (S04 hangar, S15 by the plane)
     this.P.omar = person("omar", [-0.3, 0, 40.3], { life: [[0, "neutral"], [16.6, "smug"], [17.6, "grin"], [18.3, "smug"], [57.4, "shock"], [58.0, "smug"], [59.4, "grin"]] });
     this.P.gen1 = person("gen1", [0.9, 0, 39], { life: [[0, "neutral"], [17.7, "smug"], [57.9, "grin"]] });
     this.P.gen2 = person("gen2", [0.6, 0, 41.8], { face: F([0, "neutral"], [16.2, "content"], [17.9, "satisfied"]) });
     // mechanics
-    this.P.mech1 = person("mech1", [-9.6, 0, -12.7], { face: F([0, "neutral"], [18.5, "strain"], [20.15, "satisfied"], [21.0, "happy"], [22.6, "smile"], [56.8, "content"], [57.9, "strain"], [58.2, "satisfied"], [59.5, "strain"], [59.8, "satisfied"]) });
+    this.P.mech1 = person("mech1", [-9.6, 0, -12.7], { face: F([0, "neutral"], [18.5, "content"], [20.15, "satisfied"], [21.0, "happy"], [22.6, "smile"], [56.8, "content"], [57.9, "strain"], [58.2, "satisfied"], [59.5, "strain"], [59.8, "satisfied"]), talk: "mech1" });
     this.P.mech2 = person("mech2", [13.5, 0, -5], { face: F([0, "neutral"], [13.4, "sad"], [18.3, "content"], [56.8, "neutral"], [58.5, "content"]) });
     // Wald: seated at the desk (S09, S12), standing at the board (S10, S14); colleagues (S10)
     this.P.waldS = person("arian", WALD_DESK, { seat: 0.45, face: F([0, "neutral"], [35.4, "content"], [36.6, "smile"], [48.7, "neutral"], [49.4, "content"], [49.95, "happy"]) });
@@ -172,13 +180,15 @@ export class BomberWorld implements World {
     this.P.col1 = person("col1", A(OFFICE, -2.3, 0, -0.6), { face: F([0, "neutral"], [39.6, "confused"], [41.3, "surprised"]) });
     this.P.col2 = person("col2", A(OFFICE, -0.15, 0, -0.1), { life: [[0, "neutral"], [41.4, "shock"]] });
     // fantasy diner: Ava asks, six happy diners stay, two leave through the door
-    this.P.ava = person("ava", A(DINER, 2.4, 0, 2.2), { face: F([0, "content"], [44.6, "happy"], [45.4, "smile"], [46.3, "happy"]), talk: [[44.9, 46.3]] });
+    this.P.ava = person("ava", A(DINER, 2.4, 0, 2.2), { face: F([0, "content"], [44.6, "happy"], [45.4, "smile"], [46.3, "happy"]), talk: "ava" });
     const dWho = ["din1", "din2", "din3", "din1", "din2", "din3"];
     dn.seats.slice(0, 6).forEach((s, i) => { const tb = dn.tables[Math.floor(i / 2)], pos = A(DINER, s[0], 0, s[2]);
-      const p = person(dWho[i], pos, { seat: 0.45, face: F([0, "content"], [44.7 + 0.25 * i, "happy"], [46.4 + 0.2 * i, "smile"]) });
+      const p = person(dWho[i], pos, dWho[i] === "din1"   // 2026-11-26: tina has no measured face (her drawn face floated off her head), so her own pictures
+        ? { seat: 0.45, life: [[0, "neutral"], [44.7 + 0.25 * i, "grin"]] as FaceEv[] }
+        : { seat: 0.45, face: F([0, "content"], [44.7 + 0.25 * i, "happy"], [46.4 + 0.2 * i, "smile"]) });
       this.diners.push({ p, at: pos, look: [tb[0] - s[0], tb[2] - s[2]] }); });
     this.P.din4 = person("din4", A(DINER, -1.6, 0, -3.4), { face: F([0, "sad"]) });
-    this.P.din5 = person("din5", A(DINER, -2.7, 0, -3.0), { face: F([0, "sad"]) });
+    this.P.din5 = person("din5", A(DINER, -2.7, 0, -3.0), { life: [[0, "neutral"]] });
 
     // ================= effects =================
     const jackEng = this.jack.group.localToWorld(this.jack.engines[0].clone().add(new THREE.Vector3(-1.6, 0.4, 0)));
@@ -197,7 +207,8 @@ export class BomberWorld implements World {
   }
 
   // ---------------- small builders ----------------
-  private plate(s: number) { const m = new THREE.Mesh(new THREE.BoxGeometry(s, 0.02, s), MR("#A9AEB4", 0.35, 0.6)); m.name = "steelPlate"; m.castShadow = m.receiveShadow = true; m.visible = false; return m; }
+  // 2026-11-26: darker steel (it read as white paper)
+  private plate(s: number) { const m = new THREE.Mesh(new THREE.BoxGeometry(s, 0.02, s), MR("#6E747B", 0.5, 0.45)); m.name = "steelPlate"; m.castShadow = m.receiveShadow = true; m.visible = false; return m; }
   private onSurface(m: THREE.Object3D, p: THREE.Vector3 | V3, n: THREE.Vector3 | V3) {
     const P3 = Array.isArray(p) ? new THREE.Vector3(...p) : p, N3 = Array.isArray(n) ? new THREE.Vector3(...n) : n;
     m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), N3.clone().normalize()); m.position.copy(P3).addScaledVector(N3, 0.013); m.visible = true;
@@ -318,7 +329,11 @@ export class BomberWorld implements World {
     const base = (p: Player3D, pos: V3, look: [number, number]) => { p.setPos(...pos); p.setLook(look[0], look[1]); p.setWalk(0, 0, look[0], look[1]); p.hand.L = p.restHand("L"); p.hand.R = p.restHand("R"); p.lookEyes(null); };
     const walk = (p: Player3D, a: V3, b: V3, t0: number, t1: number, look?: [number, number]): V3 => {
       const k = Math.min(1, Math.max(0, (t - t0) / (t1 - t0))), pos = lerpV(a, b, k), d: [number, number] = [b[0] - a[0], b[2] - a[2]];
-      base(p, pos, k > 0 && k < 1 ? d : (look ?? d)); if (k > 0 && k < 1) p.setWalk(t * 9, 1, d[0], d[1]); return pos;
+      // 2026-11-26: turn smoothly into and out of the walk (they snapped round in one frame)
+      let dir: [number, number] = d;
+      if (look) { const w = sm(t0 - 0.25, t0 + 0.15, t) * (1 - sm(t1 - 0.05, t1 + 0.4, t)), a0 = Math.atan2(look[0], look[1]), a1 = Math.atan2(d[0], d[1]);
+        let da = a1 - a0; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI; const a = a0 + da * w; dir = [Math.sin(a), Math.cos(a)]; }
+      base(p, pos, dir); if (k > 0 && k < 1) p.setWalk(t * 9, 1, dir[0], dir[1]); return pos;
     };
     const head = (p: Player3D): V3 => { const h = p.headWorld(this.v); return [h.x, h.y, h.z]; };
     const shoulder = (p: Player3D, s: 1 | -1): V3 => { const r = p.R, h = p.headWorld(this.v); return [h.x + r[0] * 0.15 * s, h.y - 0.3, h.z + r[2] * 0.15 * s]; };
@@ -374,7 +389,7 @@ export class BomberWorld implements World {
       this.placeStand(this.stand1, this.standTop, 0);
       const s1: V3 = [this.stand1[0], this.standTop, this.stand1[2] - 0.1];
       base(m1, s1, t > 20.5 ? flat(MAX_WING[0] - s1[0], MAX_WING[2] - s1[2]) : [0, -1]);
-      const chest = up(s1, 0.75);
+      const chest = up(s1, 0.5);   // 2026-11-26: carried lower (the plate covered his mouth while he talks)
       this.wingSpots.forEach((s, i) => {
         const on = t >= ti[i], carry = t >= ti[i] - 0.5 && t < ti[i];
         this.wingHoles[i].visible = !on; this.wingPlates[i].visible = on || carry;

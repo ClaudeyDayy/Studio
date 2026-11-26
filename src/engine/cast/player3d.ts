@@ -37,7 +37,7 @@ const tex = (c: HTMLCanvasElement) => {
 // with sunglasses or a beard over the mouth: no talking mouth then).
 // base = use another library character's head (e.g. "general": { base: "max", outfit: "army", hat: "officer" }), so one
 // person can appear in two outfits or hats in the same video under two names
-export type Cast3DSpec = Record<string, { outfit: string; hat?: string; base?: string; skin?: [number, number, number]; rig?: Partial<FaceRig>; pictureFaces?: boolean }>;
+export type Cast3DSpec = Record<string, { outfit: string; hat?: string; base?: string; skin?: [number, number, number]; rig?: Partial<FaceRig>; pictureFaces?: boolean; back?: string }>;   // back: another back-of-head picture in his library folder, e.g. "back-straight" (opt-in, 2026-11-26)
 export type Body3DInfo = { top: number; bottom: number; halfWidth: number[]; depth: number; box: [number, number, number, number]; scale: number };
 export type Cast3DAssets = { imgs: Imgs; bodies: Record<string, Body3DInfo>; faces: Record<string, any>; spec: Cast3DSpec };
 
@@ -52,7 +52,7 @@ export async function loadCast3d(spec: Cast3DSpec, extra: Record<string, string>
   for (const [ch, s] of Object.entries(spec)) {
     const src = s.base ?? ch;                                       // the library character whose pictures this person uses
     for (const f of FACES) need[`${ch}_${f}`] = `library/cast/${src}/faces/${f}.png`;
-    need[`${ch}_back`] = `library/cast/${src}/back.png`;
+    need[`${ch}_back`] = `library/cast/${src}/${s.back ?? "back"}.png`;
     need[`${s.outfit}__front3d`] = `library/wardrobe3d/${s.outfit}/front.png`;
     need[`${s.outfit}__back3d`] = `library/wardrobe3d/${s.outfit}/back.png`;
     if (s.hat) for (const v of ["front", "back", "mask"]) need[`${ch}_hat_${v}`] = `library/hats/${s.hat}/hat_${src}_${v}.png`;
